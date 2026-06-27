@@ -1,0 +1,23 @@
+graph TD
+    subgraph "Core Infrastructure"
+        State[SimulationState]
+        Graph[LangGraph Workflow]
+    end
+
+    subgraph "Execution Nodes"
+        Agent[Decision Agent]
+        Referee[Referee Node]
+    end
+
+    subgraph "Data & Analytics"
+        SQLite[(SQLite)]
+        Streamlit[Analytics Dashboard]
+    end
+
+    Agent -->|Provides Decision| Graph
+    Graph -->|Executes| Referee
+    Referee -->|Updates State| State
+    State -->|Read-Only View| Agent
+    Referee -->|Logs| SQLite
+    SQLite -.-> Streamlit
+    

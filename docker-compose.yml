@@ -1,0 +1,21 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    volumes:
+      - ./data:/app/data
+    env_file:
+      - .env
+    command: python run_simulation.py
+
+  analytics:
+    build:
+      context: .
+      dockerfile: Dockerfile.streamlit
+    volumes:
+      - ./data:/app/data:ro
+    ports:
+      - "8501:8501"
+    depends_on:
+      - app

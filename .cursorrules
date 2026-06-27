@@ -1,0 +1,9 @@
+# AMADS Project Rules
+
+- **Source of Truth:** All architecture decisions must follow `AMADS_MASTER_REFERENCE.md`.
+- **Referee Constraints:** The Referee node must NEVER call an LLM. It performs deterministic math only.
+- **State Management:** All state updates must go through defined Pydantic models in `core/state.py`.
+- **Read-Only Enforcement:** Agents must receive ONLY `AgentInputView`. They cannot access the full `SimulationState`.
+- **No Circular Evaluation:** LLMs are for decision making ONLY. Evaluation metrics are calculated in the Referee using pure code.
+- **Parallelism:** All agent decisions in a round are independent and parallel (fan-out pattern).
+- **Docker/Env:** Always check `core/config.py` for environment variables. Never hardcode keys.
