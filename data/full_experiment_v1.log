@@ -1,0 +1,235 @@
+========================================================================
+BÖLÜM 12 — TAM DENEY BAŞLIYOR
+========================================================================
+  experiment_id : full_experiment_v1
+  toplam run    : 45
+  maliyet sınırı: $7.00
+
+  experiment_conditions tablosuna 45 satır yazıldı.
+
+  → cond_low_low_rep1  (coop=0.2, risk=0.2, rep=1)
+
+  → cond_low_low_rep2  (coop=0.2, risk=0.2, rep=2)
+
+  → cond_low_low_rep3  (coop=0.2, risk=0.2, rep=3)
+
+  → cond_low_low_rep4  (coop=0.2, risk=0.2, rep=4)
+
+  → cond_low_low_rep5  (coop=0.2, risk=0.2, rep=5)
+
+========================================================================
+KOŞUL TAMAMLANDI — cond_low_low
+========================================================================
+  trait                  : coop=0.2 (low), risk=0.2 (low)
+  bu koşul maliyeti      : $0.8143
+  ilerleme               : 5/45 run
+  kümülatif maliyet      : $0.8143 / $7.00
+  tekrar özeti:
+    cond_low_low_rep1: 15 round, termination=completed, $0.1622
+    cond_low_low_rep2: 15 round, termination=completed, $0.1625
+    cond_low_low_rep3: 15 round, termination=completed, $0.1627
+    cond_low_low_rep4: 15 round, termination=completed, $0.1625
+    cond_low_low_rep5: 15 round, termination=completed, $0.1644
+
+  → cond_low_medium_rep1  (coop=0.2, risk=0.5, rep=1)
+
+  → cond_low_medium_rep2  (coop=0.2, risk=0.5, rep=2)
+
+  → cond_low_medium_rep3  (coop=0.2, risk=0.5, rep=3)
+
+  → cond_low_medium_rep4  (coop=0.2, risk=0.5, rep=4)
+
+  → cond_low_medium_rep5  (coop=0.2, risk=0.5, rep=5)
+
+========================================================================
+KOŞUL TAMAMLANDI — cond_low_medium
+========================================================================
+  trait                  : coop=0.2 (low), risk=0.5 (medium)
+  bu koşul maliyeti      : $0.7850
+  ilerleme               : 10/45 run
+  kümülatif maliyet      : $1.5993 / $7.00
+  tekrar özeti:
+    cond_low_medium_rep1: 14 round, termination=collapse, $0.1529
+    cond_low_medium_rep2: 15 round, termination=collapse, $0.1627
+    cond_low_medium_rep3: 14 round, termination=collapse, $0.1531
+    cond_low_medium_rep4: 15 round, termination=collapse, $0.1635
+    cond_low_medium_rep5: 14 round, termination=collapse, $0.1529
+
+  → cond_low_high_rep1  (coop=0.2, risk=0.8, rep=1)
+
+  → cond_low_high_rep2  (coop=0.2, risk=0.8, rep=2)
+
+  → cond_low_high_rep3  (coop=0.2, risk=0.8, rep=3)
+
+  → cond_low_high_rep4  (coop=0.2, risk=0.8, rep=4)
+
+  → cond_low_high_rep5  (coop=0.2, risk=0.8, rep=5)
+
+========================================================================
+KOŞUL TAMAMLANDI — cond_low_high
+========================================================================
+  trait                  : coop=0.2 (low), risk=0.8 (high)
+  bu koşul maliyeti      : $0.5504
+  ilerleme               : 15/45 run
+  kümülatif maliyet      : $2.1497 / $7.00
+  tekrar özeti:
+    cond_low_high_rep1: 10 round, termination=collapse, $0.1106
+    cond_low_high_rep2: 10 round, termination=collapse, $0.1098
+    cond_low_high_rep3: 10 round, termination=collapse, $0.1102
+    cond_low_high_rep4: 10 round, termination=collapse, $0.1100
+    cond_low_high_rep5: 10 round, termination=collapse, $0.1098
+
+  → cond_medium_low_rep1  (coop=0.5, risk=0.2, rep=1)
+
+  → cond_medium_low_rep2  (coop=0.5, risk=0.2, rep=2)
+
+  → cond_medium_low_rep3  (coop=0.5, risk=0.2, rep=3)
+
+  → cond_medium_low_rep4  (coop=0.5, risk=0.2, rep=4)
+
+  → cond_medium_low_rep5  (coop=0.5, risk=0.2, rep=5)
+
+========================================================================
+KOŞUL TAMAMLANDI — cond_medium_low
+========================================================================
+  trait                  : coop=0.5 (medium), risk=0.2 (low)
+  bu koşul maliyeti      : $0.8150
+  ilerleme               : 20/45 run
+  kümülatif maliyet      : $2.9647 / $7.00
+  tekrar özeti:
+    cond_medium_low_rep1: 15 round, termination=completed, $0.1627
+    cond_medium_low_rep2: 15 round, termination=completed, $0.1634
+    cond_medium_low_rep3: 15 round, termination=completed, $0.1630
+    cond_medium_low_rep4: 15 round, termination=completed, $0.1633
+    cond_medium_low_rep5: 15 round, termination=completed, $0.1627
+
+  → cond_medium_medium_rep1  (coop=0.5, risk=0.5, rep=1)
+
+  → cond_medium_medium_rep2  (coop=0.5, risk=0.5, rep=2)
+
+  → cond_medium_medium_rep3  (coop=0.5, risk=0.5, rep=3)
+
+  → cond_medium_medium_rep4  (coop=0.5, risk=0.5, rep=4)
+
+  → cond_medium_medium_rep5  (coop=0.5, risk=0.5, rep=5)
+
+========================================================================
+KOŞUL TAMAMLANDI — cond_medium_medium
+========================================================================
+  trait                  : coop=0.5 (medium), risk=0.5 (medium)
+  bu koşul maliyeti      : $0.8108
+  ilerleme               : 25/45 run
+  kümülatif maliyet      : $3.7755 / $7.00
+  tekrar özeti:
+    cond_medium_medium_rep1: 15 round, termination=completed, $0.1619
+    cond_medium_medium_rep2: 15 round, termination=completed, $0.1615
+    cond_medium_medium_rep3: 15 round, termination=completed, $0.1616
+    cond_medium_medium_rep4: 15 round, termination=completed, $0.1623
+    cond_medium_medium_rep5: 15 round, termination=completed, $0.1635
+
+  → cond_medium_high_rep1  (coop=0.5, risk=0.8, rep=1)
+
+  → cond_medium_high_rep2  (coop=0.5, risk=0.8, rep=2)
+
+  → cond_medium_high_rep3  (coop=0.5, risk=0.8, rep=3)
+
+  → cond_medium_high_rep4  (coop=0.5, risk=0.8, rep=4)
+
+  → cond_medium_high_rep5  (coop=0.5, risk=0.8, rep=5)
+
+========================================================================
+KOŞUL TAMAMLANDI — cond_medium_high
+========================================================================
+  trait                  : coop=0.5 (medium), risk=0.8 (high)
+  bu koşul maliyeti      : $0.5904
+  ilerleme               : 30/45 run
+  kümülatif maliyet      : $4.3659 / $7.00
+  tekrar özeti:
+    cond_medium_high_rep1: 11 round, termination=collapse, $0.1190
+    cond_medium_high_rep2: 11 round, termination=collapse, $0.1208
+    cond_medium_high_rep3: 10 round, termination=collapse, $0.1093
+    cond_medium_high_rep4: 11 round, termination=collapse, $0.1209
+    cond_medium_high_rep5: 11 round, termination=collapse, $0.1204
+
+  → cond_high_low_rep1  (coop=0.8, risk=0.2, rep=1)
+
+  → cond_high_low_rep2  (coop=0.8, risk=0.2, rep=2)
+
+  → cond_high_low_rep3  (coop=0.8, risk=0.2, rep=3)
+
+  → cond_high_low_rep4  (coop=0.8, risk=0.2, rep=4)
+
+  → cond_high_low_rep5  (coop=0.8, risk=0.2, rep=5)
+
+========================================================================
+KOŞUL TAMAMLANDI — cond_high_low
+========================================================================
+  trait                  : coop=0.8 (high), risk=0.2 (low)
+  bu koşul maliyeti      : $0.7253
+  ilerleme               : 35/45 run
+  kümülatif maliyet      : $5.0913 / $7.00
+  tekrar özeti:
+    cond_high_low_rep1: 13 round, termination=collapse, $0.1435
+    cond_high_low_rep2: 13 round, termination=collapse, $0.1428
+    cond_high_low_rep3: 13 round, termination=collapse, $0.1429
+    cond_high_low_rep4: 14 round, termination=collapse, $0.1522
+    cond_high_low_rep5: 13 round, termination=collapse, $0.1438
+
+  → cond_high_medium_rep1  (coop=0.8, risk=0.5, rep=1)
+
+  → cond_high_medium_rep2  (coop=0.8, risk=0.5, rep=2)
+
+  → cond_high_medium_rep3  (coop=0.8, risk=0.5, rep=3)
+
+  → cond_high_medium_rep4  (coop=0.8, risk=0.5, rep=4)
+
+  → cond_high_medium_rep5  (coop=0.8, risk=0.5, rep=5)
+
+========================================================================
+KOŞUL TAMAMLANDI — cond_high_medium
+========================================================================
+  trait                  : coop=0.8 (high), risk=0.5 (medium)
+  bu koşul maliyeti      : $0.6364
+  ilerleme               : 40/45 run
+  kümülatif maliyet      : $5.7277 / $7.00
+  tekrar özeti:
+    cond_high_medium_rep1: 12 round, termination=collapse, $0.1299
+    cond_high_medium_rep2: 12 round, termination=collapse, $0.1287
+    cond_high_medium_rep3: 12 round, termination=collapse, $0.1293
+    cond_high_medium_rep4: 11 round, termination=collapse, $0.1186
+    cond_high_medium_rep5: 12 round, termination=collapse, $0.1299
+
+  → cond_high_high_rep1  (coop=0.8, risk=0.8, rep=1)
+
+  → cond_high_high_rep2  (coop=0.8, risk=0.8, rep=2)
+
+  → cond_high_high_rep3  (coop=0.8, risk=0.8, rep=3)
+
+  → cond_high_high_rep4  (coop=0.8, risk=0.8, rep=4)
+
+  → cond_high_high_rep5  (coop=0.8, risk=0.8, rep=5)
+
+========================================================================
+KOŞUL TAMAMLANDI — cond_high_high
+========================================================================
+  trait                  : coop=0.8 (high), risk=0.8 (high)
+  bu koşul maliyeti      : $0.5451
+  ilerleme               : 45/45 run
+  kümülatif maliyet      : $6.2728 / $7.00
+  tekrar özeti:
+    cond_high_high_rep1: 10 round, termination=collapse, $0.1091
+    cond_high_high_rep2: 10 round, termination=collapse, $0.1088
+    cond_high_high_rep3: 10 round, termination=collapse, $0.1088
+    cond_high_high_rep4: 10 round, termination=collapse, $0.1090
+    cond_high_high_rep5: 10 round, termination=collapse, $0.1094
+
+========================================================================
+DENEY ÖZET — full_experiment_v1
+========================================================================
+  tamamlanan run         : 45
+  toplam maliyet         : $6.2728
+  DB — metrics_snapshots  : 576
+  DB — agent_decisions    : 2880
+  DB — experiment_conditions: 45
+
+  (fiyatlandırma: $1.00/M input, $5.00/M output — Claude Haiku 4.5)

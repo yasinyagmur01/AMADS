@@ -32,12 +32,52 @@ CREATE TABLE IF NOT EXISTS metrics_snapshots (
 )
 """
 
+_EXPERIMENT_CONDITIONS_DDL = """
+CREATE TABLE IF NOT EXISTS experiment_conditions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    experiment_id TEXT NOT NULL,
+    run_id TEXT NOT NULL UNIQUE,
+    coop_level TEXT NOT NULL,
+    risk_level TEXT NOT NULL,
+    coop_value REAL NOT NULL,
+    risk_value REAL NOT NULL,
+    replication INTEGER NOT NULL
+)
+"""
+
 
 def init_db(db_path: str) -> None:
     Path(db_path).parent.mkdir(parents=True, exist_ok=True)
     with sqlite3.connect(db_path) as conn:
         conn.execute(_AGENT_DECISIONS_DDL)
         conn.execute(_METRICS_SNAPSHOTS_DDL)
+        conn.execute(_EXPERIMENT_CONDITIONS_DDL)
+        conn.commit()
+
+
+def register_experiment_conditions(
+    experiment_id: str,
+    conditions: list[tuple[str, str, str, float, float, int]],
+    db_path: str = RESULTS_DB_PATH,
+) -> None:
+    """Persist run_id → condition mapping for downstream SQL joins.
+
+    Each tuple: (run_id, coop_level, risk_level, coop_value, risk_value, replication)
+    """
+    init_db(db_path)
+    with sqlite3.connect(db_path) as conn:
+        conn.executemany(
+            """
+            INSERT OR REPLACE INTO experiment_conditions (
+                experiment_id, run_id, coop_level, risk_level,
+                coop_value, risk_value, replication
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            [
+                (experiment_id, run_id, coop_level, risk_level, coop_val, risk_val, rep)
+                for run_id, coop_level, risk_level, coop_val, risk_val, rep in conditions
+            ],
+        )
         conn.commit()
 
 
