@@ -21,8 +21,6 @@ from dataclasses import dataclass
 from itertools import product
 from pathlib import Path
 
-from langgraph.graph import END, StateGraph
-
 _ROOT = Path(__file__).resolve().parent.parent
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
@@ -31,14 +29,13 @@ from agents.decision_agent import (
     _INPUT_COST_PER_M,
     _OUTPUT_COST_PER_M,
     reset_token_usage,
-    run_agent_fanout,
     token_usage,
 )
 from core.config import settings
 from core.database import RESULTS_DB_PATH, register_experiment_conditions
+from core.graph import app
 from core.state import EnvironmentSnapshot, SimulationState, TraitProfile
 from environment.shocks import build_mock_dev_shock_schedule
-from referee.referee_node import run_referee
 
 EXPERIMENT_ID = "full_experiment_v1"
 MAX_ROUNDS = 15
@@ -127,19 +124,6 @@ def _make_initial_state(spec: RunSpec) -> SimulationState:
             is_collapsed=False,
         ),
     )
-
-
-def _build_graph():
-    workflow = StateGraph(SimulationState)
-    workflow.add_node("agent_fanout", run_agent_fanout)
-    workflow.add_node("referee", run_referee)
-    workflow.set_entry_point("agent_fanout")
-    workflow.add_edge("agent_fanout", "referee")
-    workflow.add_conditional_edges(
-        "referee",
-        lambda state: END if state.is_terminated else "agent_fanout",
-    )
-    return workflow.compile()
 
 
 def _condition_key(spec: RunSpec) -> str:
@@ -309,7 +293,6 @@ async def run_experiment(*, dry_run: bool = False) -> None:
     _register_plan(specs)
     print(f"\n  experiment_conditions tablosuna {len(specs)} satır yazıldı.")
 
-    app = _build_graph()
     summaries: list[RunSummary] = []
     total_cost = 0.0
     stopped_early = False
