@@ -1,3 +1,4 @@
+from core.config import settings
 from core.database import RESULTS_DB_PATH, save_round_to_db
 from core.state import (
     AgentDecision,
@@ -6,9 +7,6 @@ from core.state import (
     ShockType,
     SimulationState,
 )
-
-MAX_EXTRACTABLE_FRACTION = 0.40
-
 
 def _clamp(value: float, lower: float, upper: float) -> float:
     return max(lower, min(value, upper))
@@ -41,6 +39,14 @@ def _cooperation_score_avg(
         for e in extractions
     ]
     return sum(scores) / len(scores)
+
+
+def _collapse_epsilon(pool_capacity: float) -> float:
+    return pool_capacity * settings.COLLAPSE_EPSILON_RATIO
+
+
+def _is_collapsed(pool_after: float, pool_capacity: float) -> bool:
+    return pool_after <= _collapse_epsilon(pool_capacity)
 
 
 def _apply_pool_formula(
@@ -145,7 +151,7 @@ def run_referee(state: SimulationState) -> dict:
     )
 
     next_max_extractable = min(
-        pool_after * MAX_EXTRACTABLE_FRACTION * max_extractable_multiplier,
+        pool_after * settings.EXTRACTION_LIMIT_RATIO * max_extractable_multiplier,
         pool_after,
     )
 
@@ -153,7 +159,7 @@ def run_referee(state: SimulationState) -> dict:
     is_terminated = False
     termination_reason = None
 
-    if pool_after <= 0:
+    if _is_collapsed(pool_after, pool_capacity):
         is_terminated = True
         termination_reason = "collapse"
     elif new_round_number >= state.max_rounds:
@@ -166,7 +172,7 @@ def run_referee(state: SimulationState) -> dict:
         regen_rate=regen_rate,
         max_extractable_this_round=next_max_extractable,
         round_number=new_round_number,
-        is_collapsed=pool_after <= 0,
+        is_collapsed=_is_collapsed(pool_after, pool_capacity),
     )
 
     return {

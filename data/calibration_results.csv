@@ -1,0 +1,4 @@
+extraction_limit_ratio,avg_rounds_played,saw_shock_round_7,shock_rate_pct,completed_15,completed_rate_pct,runs_per_ratio,max_rounds,shock_round
+0.3,7.53,15,37.5,9,22.5,40,15,7
+0.32,6.88,14,35.0,9,22.5,40,15,7
+0.34,5.62,8,20.0,8,20.0,40,15,7

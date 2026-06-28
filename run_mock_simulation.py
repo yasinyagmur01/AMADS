@@ -63,7 +63,7 @@ def _make_initial_state(experiment_id: str, run_id: str) -> SimulationState:
             pool_current=pool,
             pool_capacity=pool,
             regen_rate=1.15,
-            max_extractable_this_round=pool * 0.40,
+            max_extractable_this_round=pool * settings.EXTRACTION_LIMIT_RATIO,
             round_number=0,
             is_collapsed=False,
         ),

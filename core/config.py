@@ -13,7 +13,9 @@ class Settings(BaseSettings):
     # API Keys
     ANTHROPIC_API_KEY: Optional[str] = None
     LANGSMITH_API_KEY: Optional[str] = None
-    GROQ_API_KEY: Optional[str] = None
+
+    # Anthropic model (Bölüm 10)
+    ANTHROPIC_MODEL: str = "claude-haiku-4-5-20251001"
 
     # LangSmith Tracing
     LANGSMITH_TRACING: bool = True
@@ -22,6 +24,16 @@ class Settings(BaseSettings):
     # Simulation Constraints (Hard Caps)
     AGENT_COUNT: int = 5
     MAX_ROUNDS: int = 15
+    # Round başına çekilebilir üst sınır: pool_after * EXTRACTION_LIMIT_RATIO
+    # Gerçek LLM testleriyle kalibre edildi (3 run, sabit trait kompozisyonu,
+    # hepsi round 12'de collapse). Not: bu sabit trait kompozisyonuyla varyans
+    # GÖRÜLMEDİ — bu beklenen bir durum, çünkü temperature=0.2 + aynı trait'ler
+    # + aynı senaryo doğası gereği tutarlı sonuç üretir. Gerçek varyans, asıl
+    # deneyde run'lar arası trait kompozisyonu DEĞİŞTİRİLEREK elde edilecek
+    # (Bölüm 12, istatistiksel deney tasarımı).
+    EXTRACTION_LIMIT_RATIO: float = 0.12
+    # Havuz çöküş eşiği: pool_capacity * COLLAPSE_EPSILON_RATIO
+    COLLAPSE_EPSILON_RATIO: float = 0.01
 
     # Defaults
     TEMPERATURE: float = 0.2
