@@ -488,6 +488,53 @@ Aynı mutlak fark eşiği (δ=0.05), farklı metriklerde farklı istatistiksel g
 
 **Bu bulgu kilitlidir, mevcut veri/prompt üzerinde tekrar sorgulanmayacak.** Prompt'u netleştirip (örn. "0=mümkün olduğunca çok çek, 1=mümkün olduğunca az çek, diğerlerinin payını koru" gibi davranışsal terimle) tekrar test etmek istenirse, bu **ayrı bir deney** (`experiment_id` farklı) olarak yapılacak, mevcut `full_experiment_v1` verisi/bulgusu değiştirilmeyecek.
 
+#### 18.4.1 — Çok Dilli Doğrulama (11 Dil Pilot Taraması)
+
+**Amaç:** Türkçe'deki "ters fidelity" bulgusunun bir çeviri/dil artefaktı olup olmadığını test etmek.
+
+**Yöntem:** Aynı mikro-A/B testi (risk=0.2 sabit, cooperation ∈ {0.2, 0.8}, her hücrede 5 tekrar = dil başına 10 çağrı), 11 dilde paralel pilot tarama. Tek agent, tek round (round 0), `claude-haiku-4-5-20251001`, `temperature=0.2`. Sistem ve human prompt'lar her dilde o dilde yazıldı; trait alan adları (`cooperation_assigned`, `risk_tolerance_assigned`) ve yapılandırılmış çıktı alanları (`extraction_amount`, `justification`, `declared_max`) tüm dillerde İngilizce sabit kaldı. `data/results.db`'ye yazılmadı. Script: `analysis/prompt_ab_multilang.py`. Sonuçlar: `data/multilang_results.csv`. Toplam 110 çağrı, maliyet ~$0.23 (sınır $0.50).
+
+**Sınıflandırma kuralı** (fark = coop=0.8 ort. − coop=0.2 ort., eşik |fark| ≥ 0.30):
+- `ters fidelity`: fark > +0.30 (yüksek cooperation → daha fazla çekim)
+- `beklenen yön`: fark < −0.30 (yüksek cooperation → daha az çekim)
+- `trait-blind heuristic`: |fark| < 0.30 (cooperation numerik olarak ayırt edilmiyor)
+- `diğer`: eksik veri / sınır durumları
+
+**Sonuç tablosu (n=5/hücre, pilot tarama):**
+
+| dil | coop=0.2 ort. | coop=0.8 ort. | fark | sınıf |
+|---|---|---|---|---|
+| **tr** | 4.80 | 8.40 | **+3.60** | ters fidelity |
+| zh | 8.40 | 9.60 | +1.20 | ters fidelity |
+| es | 8.94 | 9.60 | +0.66 | ters fidelity |
+| en | 9.12 | 9.60 | +0.48 | ters fidelity |
+| ja | 9.12 | 9.60 | +0.48 | ters fidelity |
+| hi | 9.16 | 9.60 | +0.44 | ters fidelity |
+| fr | 9.76 | 9.60 | −0.16 | trait-blind heuristic |
+| ru | 9.60 | 9.60 | 0.00 | trait-blind heuristic |
+| de | 8.16 | 7.68 | −0.48 | beklenen yön |
+| pt | 9.60 | 9.12 | −0.48 | beklenen yön |
+| ar | 10.30 | 9.60 | −0.70 | beklenen yön |
+
+**Takip — sınırda "beklenen yön" dilleri (de, pt, ar):** İlk batch'te beklenen yönde görünen üç dil şüpheli/sınırda kaldı (|fark| ≈ 0.48–0.70). Her biri için +10 çağrı daha koşuldu (`analysis/prompt_ab_multilang_extend.py`, n=10/hücre birleşik, maliyet ~$0.06):
+
+| dil | n=5 fark | n=10 fark | n=10 sınıf |
+|---|---|---|---|
+| de | −0.48 | −0.24 | trait-blind heuristic |
+| pt | −0.48 | −0.24 | trait-blind heuristic |
+| ar | −0.70 | −0.60 | beklenen yön |
+
+**Bulgular (eleme sırasıyla):**
+1. **Türkçe artefakt değil — ters fidelity en güçlü dil:** `tr` dilinde fark (+3.60) diğer tüm dillerden belirgin şekilde büyük; coop=0.2 → max'ın %40'ı (4.8), coop=0.8 → %70'i (8.4). Bu, Bölüm 18.4'teki Türkçe mikro-test ve `full_experiment_v1` round-0 verisiyle tutarlı.
+2. **6 dilde zayıf ters yön:** `en`, `zh`, `es`, `ja`, `hi` pozitif fark veriyor (+0.44 ile +1.20 arası) ama çoğu 9.6 attractor'una yakın; etki Türkçe kadar net değil.
+3. **2 dil trait-blind:** `fr`, `ru` — cooperation grupları ayırt edilmiyor.
+4. **"Beklenen yön" iddiası çoğunlukla çöktü:** `de` ve `pt` n=10'da fark ±0.24'e düştü (trait-blind); ilk batch'teki −0.48 sınırda gürültüydü. `ar` n=10'da −0.60 ile negatif farkı korudu, ancak coop=0.2 tarafı max'e yakın aşırı çekim (10.0–10.5) gösteriyor — bu, temiz bir "işbirlikçi = az çek" fidelity'si değil, düşük-coop hücresinin daha agresif davranması olarak okunabilir.
+5. **İngilizce özel durumu (önceki mikro-testlerle birlikte):** Tek başına İngilizce prompt'ta model bazen %80 sabit heuristic'e (9.6) kilitleniyor (trait-blind); çok dilli koşuda ise zayıf ters fidelity (+0.48) görüldü. Dil tek başına davranışı belirlemiyor; cooperation trait'i hiçbir dilde güvenilir biçimde beklenen yönde çalışmıyor.
+
+**Sonuç:** Türkçe'deki ters fidelity bir çeviri hatası veya dil-spesifik artefakt **değil** — aksine, 11 dil pilot taramasında **en belirgin ve en tutarlı** ters fidelity Türkçe'de görüldü. Cooperation trait'inin LLM'e güvenilmez aktarımı dil-evrensel bir sorun; hata modu dile göre değişiyor (Türkçe: güçlü ters fidelity; çoğu diğer dil: zayıf ters veya trait-blind; sınırda "beklenen yön" iddiaları n=10'da çoğunlukla trait-blind'e indirgendi).
+
+**Bu alt bulgu, Bölüm 18.4'ün kilitli ana bulgusunu destekler; tersine çevirmez.** Çok dilli pilot tarama ayrı bir deney kaydı olarak tutulur (`experiment_id`: `_scratch_multilang`); `full_experiment_v1` verisi değiştirilmedi.
+
 ### 18.5. Yapısal Kod Denetimi (Sonuç: Sağlam, Küçük Bir Düzeltme)
 
 18 `.py` dosyası tarandı (salt okuma). Sonuç: **yetim dosya yok**, production zinciri net (`run_full_experiment.py → decision_agent.py → referee_node.py → database.py`), test/debug/analiz dosyaları kategorize edilebilir durumda. Tek gerçek risk: `core/graph.py` ve `run_full_experiment.py`'nin kendi inline graph tanımı arasında **çift tanım** vardı (sessiz tutarsızlık riski) — birleştirildi, tek kaynağa indirildi. Referee'nin 4 sorumluluğu (fizik+şok+metrik+persistence) taşıması not edildi ama mimari kuralına (LLM yok) uygun olduğu için şimdilik dokunulmadı.
