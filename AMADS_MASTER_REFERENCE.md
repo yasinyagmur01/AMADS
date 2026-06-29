@@ -482,6 +482,7 @@ Aynı mutlak fark eşiği (δ=0.05), farklı metriklerde farklı istatistiksel g
 6. **Ham veri kontrolü (declared_max confound'u elendi):** risk=0.8 hücrelerinde `declared_max` her zaman 12.0 (sabit) — yani fraction farkı tamamen `extraction_amount`'tan geliyor, declared_max'ten değil.
 7. **Risk×coop etkileşimi ihtimali test edildi ve elendi:** risk=0.2 (düşük, sabit) tutulup sadece coop değiştirilen 10 çağrılık mikro-test: coop=0.2 → ort. extraction=4.56, coop=0.8 → ort. extraction=8.40. Ters etki risk seviyesinden bağımsız, her koşulda var.
 8. **Kök neden, justification metinleri okunarak teşhis edildi:** LLM, "cooperation" kavramını "kaynağı az kullanmak" olarak değil, **"kendi payımı sorumlu/sürdürülebilir şekilde tam kullanmak"** olarak yorumluyor. Gerekçelerde "diğer ajanların da faydalanmasını sağlıyorum", "sürdürülebilirliği destekliyorum" gibi ifadelerle yüksek çekimi (declared_max'in ~%70'i) meşrulaştırıyor.
+9. **Üçüncü, bağımsız doğrulama (kontrol grubu + k-means):** convergent validity ile teyit edildi — bkz. `data/synthesis_report.md`.
 
 **Akademik çerçeveleme:** Bu bir prompt mühendisliği hatası veya implementasyon bug'ı değil — **kavramsal uyumsuzluk (concept misalignment)**: LLM'in "cooperation" kelimesine atadığı davranışsal çerçeve, deneyin operasyonel tanımıyla (Bölüm 5) örtüşmüyor. `risk_tolerance` için bu uyumsuzluk yok. **Genelleştirilebilir çıkarım: trait fidelity, trait'in türüne göre değişir — doğrudan eylem-yönelimli trait'ler (risk) ile soyut/değer-yüklü trait'ler (cooperation) farklı güvenilirlikte LLM'e aktarılıyor.**
 
