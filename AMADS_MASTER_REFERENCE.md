@@ -294,9 +294,9 @@ Bunlar core simülasyon bittikten sonra, **ekstra LLM çağrısı gerektirmeden*
 |---|---|---|---|
 | Kontrol Grubu Agent | LLM davranışı, sabit kurallı bot'tan farklı mı? | Aynı simülasyondaki ham extraction verisi (LLM çağrısı yapmayan bir `AgentDecision` üreticisi) | `agents/control_agent.py` |
 | Kümeleme (Clustering) | Kaç farklı strateji arketipi kendiliğinden ortaya çıkıyor? | Davranış vektörleri, scikit-learn k-means | `analysis/clustering.py` |
-| İnsan Verisiyle Kıyas | Bulunan örüntüler gerçek insan davranışına ne kadar yakın? | Literatürden çekilen Gini/cooperation referans değerleri | `analysis/human_baseline.py` |
+| Sentez Raporu | Üç yöntem tutarlı mı? | fidelity + kümeleme + kontrol grubu çıktıları | `analysis/synthesis_report.py` → `data/synthesis_report.md` |
 
-> Bu üçü birbirinin girdisini kullanan kademeli bir anlatı oluşturur: önce "ne oldu" (kümeleme), sonra "rastgele mi anlamlı mı" (kontrol grubu), sonra "gerçek dünyaya benziyor mu" (insan kıyası).
+> Bu üçü birbirinin girdisini kullanan kademeli bir anlatı oluşturur: önce "ne oldu" (kümeleme), sonra "rastgele mi anlamlı mı" (kontrol grubu), sonra "hepsi aynı tabloyu mu çiziyor" (sentez). **Uygulandı** — bkz. `data/synthesis_report.md`.
 
 ---
 
@@ -353,8 +353,9 @@ amads/
 │   └── shocks.py           # Seedli şok takvimi üretici
 ├── analysis/
 │   ├── clustering.py
-│   ├── control_comparison.py
-│   └── human_baseline.py
+│   ├── trait_fidelity.py
+│   ├── synthesis_report.py
+│   └── export_experiment_summary.py
 ├── tests/
 │   └── (mock/dry-run senaryoları)
 ├── docker-compose.yml
@@ -585,12 +586,53 @@ Aynı mutlak fark eşiği (δ=0.05), farklı metriklerde farklı istatistiksel g
 | Mikro A/B doğrulama (2 tur, 20 çağrı) | ~$0.04 |
 | **Toplam (Haiku 4.5 ile)** | **~$7.25** |
 
-### 18.7. Sırada Ne Var (Bölüm 13'ün uygulanması)
+### 18.7. Sırada Ne Var
 
-1. **Kontrol grubu agent** (`agents/control_agent.py`) — `mock_agent.py` temel alınarak, LLM kullanmayan sabit-kurallı bir karşılaştırma agent'ı; "LLM davranışı gerçekten kurallı bir bot'tan farklı mı" sorusu.
-2. **k-means kümeleme** (`analysis/clustering.py`) — mevcut 45 run'lık veriyle, yeni LLM çağrısı gerektirmez.
-3. **İnsan baseline kıyası** (`analysis/human_baseline.py`) — literatür taraması gerektirir, en uzun sürecek parça.
-4. Docker ve final Sonnet 4.6 run'ı — yukarıdaki üçü netleşene kadar bilinçli olarak ertelendi.
+1. ~~Kontrol grubu agent~~ → **TAMAMLANDI** (`control_group_v1`, `agents/control_agent.py`).
+2. ~~k-means kümeleme~~ → **TAMAMLANDI** (`analysis/clustering.py`).
+3. ~~Sentez raporu~~ → **TAMAMLANDI** (`data/synthesis_report.md`).
+4. **Faz 0 veri export** → **TAMAMLANDI** (`analysis/export_experiment_summary.py`, `data/amads_round0_summary.csv`).
+5. **Test stratejisi / `tests/`** — Referee metrikleri için unit testler (maliyetsiz).
+6. ~~**Sonnet 4.6 replikasyon (full 45-run)**~~ → **UYGULANMADI** — cross-model pilot (`sonnet_crossmodel_v1`, n=40) yeterli kanıtı verdi, tam run ertelendi; bkz. Bölüm 18.8.
+7. Docker / Streamlit analytics — operasyonel, düşük öncelik.
+
+### 18.8. Cross-Model Replikasyon (Sonnet 4.6, n=40)
+
+**Amaç:** Bölüm 18.4'teki Haiku bulgularının (cooperation ters fidelity, risk beklenen yön) model-spesifik mi yoksa genel bir LLM davranışı mı olduğunu test etmek.
+
+**Tasarım:**
+
+| Parametre | Değer |
+|---|---|
+| `experiment_id` | `sonnet_crossmodel_v1` |
+| Model | `claude-sonnet-4-6` |
+| Prompt | Türkçe, Haiku mikro-A/B ile **birebir aynı** (Bölüm 18.2 metni) |
+| Trait grid | cooperation × risk ∈ {0.2, 0.8}² (4 hücre) |
+| Tekrar/hücre | n=10 |
+| Toplam çağrı | 40 |
+| Round | 0 (tek round, confound yok) |
+| Script | `analysis/prompt_ab_sonnet_crossmodel.py` |
+| Veri | `data/sonnet_crossmodel_v1.csv` (`results.db`'ye yazılmaz) |
+
+**Sonuçlar (round-0 extraction_amount üzerinden):**
+
+| Trait | Sonnet 4.6 (n=40) | Haiku 4.5 referans (Bölüm 18.4, n=45 round-0) |
+|---|---|---|
+| cooperation → extraction | r ≈ **−0.84** (beklenen yön) | r ≈ **+0.46** (ters fidelity) |
+| risk → extraction | r ≈ **+0.15** (zayıf) | r ≈ **+0.68** (güçlü, beklenen yön) |
+
+**Marjinal ortalamalar (cooperation, risk marjinalleştirilmiş):**
+
+| cooperation_assigned | Ort. extraction |
+|---|---|
+| 0.2 (düşük işbirliği) | ~10.0 |
+| 0.8 (yüksek işbirliği) | ~5.35 |
+
+**Yorum:** Aynı prompt, farklı model → hem **yön** hem **büyüklük** değişiyor. Cooperation Sonnet'te beklenen yönde (yüksek coop → daha az çekim), Haiku'da tersine; risk Sonnet'te neredeyse etkisiz, Haiku'da güçlü. Bu, Bölüm 18.4'te revize edilen "trait fidelity kategori kuralına göre çalışmıyor" bulgusunu bir adım ileri taşır: **trait fidelity model-spesifiktir** — aynı trait+prompt kombinasyonu farklı modellerde farklı (hatta zıt) davranış üretebilir.
+
+**Açık soru:** Cooperation ve risk arasındaki görünür "trade-off" (Haiku'da risk güçlü / cooperation zayıf-ters, Sonnet'te cooperation güçlü-beklenen yön / risk zayıf) tesadüf mü, sistemik mi? **N=2 model ile cevaplanamaz** — gelecek çalışma (≥3 model, aynı grid, prereg/SAP).
+
+**Kapsam notu:** Ana deney (`full_experiment_v1`, Haiku 45-run) **değiştirilmedi**. Sonnet koşusu ayrı, bağımsız bir replikasyon kaydı olarak tutulur.
 
 ---
 

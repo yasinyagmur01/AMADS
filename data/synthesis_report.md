@@ -14,10 +14,11 @@
 | Trait fidelity (LLM, r, p) | r=0.678, p<0.0001 | r=0.456, p=0.0016 (ters yön) |
 | Kümeleme (k-means, trait'i hiç görmeden) | kümeleri ayırıyor (risk ekseni net) | kümeleri ayırmıyor |
 | Kontrol grubu (deterministik formül) vs LLM yön karşılaştırması | (risk kontrol grubunda kullanılmadı, N/A) | kontrol: negatif (beklenen), LLM: pozitif (ters) |
+| Cross-model replikasyon (Sonnet) | Haiku'nun tam tersi pattern | — |
 
 ## Sentez
 
-Üç bağımsız yöntem tutarlı bir tablo çiziyor: risk_tolerance, hem Pearson korelasyonunda (r=0.678) hem de davranış kümelemesinde (ARI=0.286) LLM çıktısını güvenilir biçimde yönlendiriyor. cooperation_assigned ise ters yönde davranıyor — fidelity analizinde pozitif ve anlamlı bir ilişki (r=0.456, beklenen negatifin tersi), kümelemede ise koşulları ayırmıyor (ARI=0.123); deterministik kontrol grubu beklenen negatif yönü doğrularken LLM grubu pozitif yönde sapıyor. Bu bulgular, risk trait'inin modele aktarıldığını, cooperation trait'inin ise hem fidelity hem kümeleme düzeyinde etkisiz veya ters kaldığını gösteriyor.
+Üç bağımsız yöntem tutarlı bir tablo çiziyor: risk_tolerance, hem Pearson korelasyonunda (r=0.678) hem de davranış kümelemesinde (ARI=0.286) LLM çıktısını güvenilir biçimde yönlendiriyor. cooperation_assigned ise ters yönde davranıyor — fidelity analizinde pozitif ve anlamlı bir ilişki (r=0.456, beklenen negatifin tersi), kümelemede ise koşulları ayırmıyor (ARI=0.123); deterministik kontrol grubu beklenen negatif yönü doğrularken LLM grubu pozitif yönde sapıyor. Bu bulgular, risk trait'inin modele aktarıldığını, cooperation trait'inin ise hem fidelity hem kümeleme düzeyinde etkisiz veya ters kaldığını gösteriyor. Claude Sonnet 4.6 ile yapılan cross-model replikasyonu (n=40), trait fidelity'nin model-spesifik olduğunu gösteriyor: Haiku'da ters olan cooperation, Sonnet'te beklenen yönde (r≈-0.84); Haiku'da güçlü olan risk ise Sonnet'te zayıfladı (r≈+0.15). Bu, 'concept misalignment' bulgusunun evrensel değil, model-bağımlı olduğuna işaret ediyor.
 
 ## Detay (referans)
 
