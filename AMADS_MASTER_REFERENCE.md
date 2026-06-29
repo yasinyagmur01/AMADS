@@ -535,6 +535,42 @@ Aynı mutlak fark eşiği (δ=0.05), farklı metriklerde farklı istatistiksel g
 
 **Bu alt bulgu, Bölüm 18.4'ün kilitli ana bulgusunu destekler; tersine çevirmez.** Çok dilli pilot tarama ayrı bir deney kaydı olarak tutulur (`experiment_id`: `_scratch_multilang`); `full_experiment_v1` verisi değiştirilmedi.
 
+#### 18.4.2 — Trait Kategorisi Genelleme Denemesi (11 Trait Pilot Taraması)
+
+**Amaç:** Bölüm 18.4'teki cooperation ters fidelity'sinin yalnızca "soyut/değer-yüklü trait" kategorisine mi özgü olduğunu — yoksa somut/eylem-yönelimli kelimelerin (ör. `risk_tolerance`) güvenilir çalıştığı genel bir kural olup olmadığını — test etmek.
+
+**Yöntem:** Orijinal 2 trait'e (`cooperation_assigned`, `risk_tolerance_assigned`) ek olarak **9 yeni category trait** mikro-A/B ile tarandı: `aggression_assigned`, `fairness_assigned`, `impatience_assigned`, `tolerance_assigned`, `creativity_assigned`, `greed_assigned`, `hoarding_assigned`, `trust_assigned`, `caution_assigned`. Her trait için diğer tüm trait'ler **0.5 sabit**, hedef trait **{0.2, 0.8}**; hücre başına **n=5** (fairness için doğrulama amaçlı ek batch ile birleşik **n=10**). Tek agent, tek round (round 0), İngilizce system/human prompt, `claude-haiku-4-5-20251001`, `temperature=0.2`. `data/results.db`'ye yazılmadı. Script: `analysis/trait_category_pilot.py`. Toplam category pilot çağrıları ~100, toplam maliyet ~$0.18 (sınır $0.20/batch).
+
+**Sonuç tablosu** (fark = trait=0.8 ort. extraction − trait=0.2 ort. extraction; tanımlayıcı, p-değeri yok):
+
+| Trait | Fark (0.8−0.2) | n/hücre | Sınıf |
+|---|---|---|---|
+| `risk_tolerance_assigned` | beklenen yön (+) | 45 run (full exp.) + mikro | **çalışıyor** |
+| `aggression_assigned` | +3.68 | 5 | **çalışıyor** |
+| `fairness_assigned` | −2.88 | 10 | **çalışıyor** |
+| `greed_assigned` | +4.00 | 5 | **çalışıyor** |
+| `cooperation_assigned` | ters (+) | 5–45 | güvenilmez (ters fidelity) |
+| `impatience_assigned` | 0.00 | 5 | trait-blind |
+| `tolerance_assigned` | 0.00 | 5 | trait-blind |
+| `creativity_assigned` | 0.00 | 5 | trait-blind |
+| `hoarding_assigned` | 0.00 | 5 | trait-blind |
+| `trust_assigned` | 0.00 | 5 | trait-blind |
+| `caution_assigned` | 0.00 | 5 | trait-blind |
+
+**Özet sınıflandırma:**
+- **Çalışan (n=4):** `risk_tolerance`, `aggression`, `fairness`, `greed` — numerik seviye extraction'ı beklenen yönde ayırıyor.
+- **Trait-blind / güvenilmez (n=7):** `cooperation` (ters fidelity), `impatience`, `tolerance`, `creativity`, `hoarding`, `trust`, `caution` — gruplar ayırt edilmiyor veya ters/kararsız.
+
+**KİLİT BULGU — `caution_assigned`:** Tanımı `risk_tolerance_assigned`'ın ters çerçevesidir (0=hiç temkinli değil, 1=çok temkinli); kelime düzeyinde neredeyse saf eş anlamlıdır. Buna rağmen mikro-A/B'de **trait-blind** çıktı (her iki seviyede sabit 6.0, %50 heuristic). Bu, Bölüm 18.4'teki "somut/eylem-yönelimli kelimeler güvenilir çalışır" hipotezini **çürütür**: kelime seçimi, kategoriden (soyut/somut, eylem/değer) bağımsız olarak fidelity'yi belirliyor; `risk` çalışırken `caution` çalışmıyor.
+
+**NİHAİ SONUÇ:** Trait fidelity, önceden tahmin edilebilir bir kategori kuralına (soyut/somut, eylem/değer, içe-dönük/sosyal) göre **çalışmıyor**. Her trait'in fidelity'si kendine özgüdür ve ampirik olarak (mikro-A/B testiyle) doğrulanmalıdır — genel bir kural çıkarılamaz. Bölüm 18.4'teki erken genelleme ("eylem-yönelimli trait'ler güvenilir") bu tarama ile **revize edilmiştir**.
+
+**Metodolojik not — `hoarding_assigned`:** Başarısızlık muhtemelen ayrı bir sebepten kaynaklanır: tek-round deney tasarımında "stoklama/stockpile" davranışı extraction miktarı üzerinden **hiç gözlemlenemez** (çok round'lu birikim gerektirir). Bu bir **confound**'dur; trait fidelity başarısızlığı olarak yorumlanmamalı.
+
+**Pratik çıkarım (framework için):** Trait tanımlamadan ve tam deneye geçmeden önce her aday trait, mevcut prompt ve senaryo bağlamında **mikro-A/B ile test edilmeli**; kategori sezgisine veya kelime "somutluğuna" güvenilmemeli.
+
+**FAZ DURUMU: KAPALI.** 11 trait pilot taraması tamamlandı; bu faz kapsamında **yeni trait denemesi yapılmayacak**. İleride yeni trait eklenmesi gerekiyorsa, ayrı bir faz/deney kaydı (`experiment_id` farklı) olarak planlanmalıdır.
+
 ### 18.5. Yapısal Kod Denetimi (Sonuç: Sağlam, Küçük Bir Düzeltme)
 
 18 `.py` dosyası tarandı (salt okuma). Sonuç: **yetim dosya yok**, production zinciri net (`run_full_experiment.py → decision_agent.py → referee_node.py → database.py`), test/debug/analiz dosyaları kategorize edilebilir durumda. Tek gerçek risk: `core/graph.py` ve `run_full_experiment.py`'nin kendi inline graph tanımı arasında **çift tanım** vardı (sessiz tutarsızlık riski) — birleştirildi, tek kaynağa indirildi. Referee'nin 4 sorumluluğu (fizik+şok+metrik+persistence) taşıması not edildi ama mimari kuralına (LLM yok) uygun olduğu için şimdilik dokunulmadı.

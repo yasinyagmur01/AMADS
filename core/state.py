@@ -8,6 +8,15 @@ class TraitProfile(BaseModel):
     agent_id: str
     cooperation_assigned: float = Field(ge=0.0, le=1.0)
     risk_tolerance_assigned: float = Field(ge=0.0, le=1.0)
+    aggression_assigned: float = Field(default=0.5, ge=0.0, le=1.0)
+    impatience_assigned: float = Field(default=0.5, ge=0.0, le=1.0)
+    tolerance_assigned: float = Field(default=0.5, ge=0.0, le=1.0)
+    fairness_assigned: float = Field(default=0.5, ge=0.0, le=1.0)
+    creativity_assigned: float = Field(default=0.5, ge=0.0, le=1.0)
+    greed_assigned: float = Field(default=0.5, ge=0.0, le=1.0)
+    hoarding_assigned: float = Field(default=0.5, ge=0.0, le=1.0)
+    trust_assigned: float = Field(default=0.5, ge=0.0, le=1.0)
+    caution_assigned: float = Field(default=0.5, ge=0.0, le=1.0)
     profile_label: str
 
 # --- 4.2 EnvironmentSnapshot ---
