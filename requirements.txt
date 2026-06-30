@@ -1,0 +1,11 @@
+anthropic
+langchain-anthropic
+langgraph
+pydantic
+pydantic-settings
+python-dotenv
+scipy
+scikit-learn
+matplotlib
+statsmodels
+langsmith
