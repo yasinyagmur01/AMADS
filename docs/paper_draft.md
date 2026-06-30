@@ -1,14 +1,14 @@
 # Trait Fidelity in LLM-Based Multi-Agent Simulations: Model-Specific Behavioral Divergence in Commons Dilemma Scenarios
 
-## Abstract
+# Abstract
 
-LLM agents are widely used in multi-agent social-dilemma simulations, but whether prompt-injected psychological traits produce behaviorally faithful outcomes is rarely tested with independent, code-computed metrics. We present AMADS (Academic Multi-Agent Decision Simulation), a LangGraph commons-dilemma framework where LLMs output structured extraction decisions and a deterministic, LLM-free referee computes all outcomes—eliminating circular LLM-as-judge evaluation. In `full_experiment_v1` (45 runs; 9 trait conditions × 5 replicates; Claude Haiku 4.5; Turkish prompts), `risk_tolerance_assigned` transfers reliably (*r* = +0.678, *p* < 0.0001), while `cooperation_assigned` exhibits inverse fidelity (*r* = +0.456, *p* = 0.0016): higher assigned cooperation predicts greater extraction. Trait-fidelity analysis, blind k-means clustering, and a formula-based control agent provide convergent validity. Eleven-language and eleven-trait pilot screens reveal no stable category rule for transfer; Sonnet 4.6 cross-model replication (*n* = 40) reverses the cooperation pattern (*r* ≈ −0.84) while weakening risk (*r* ≈ +0.15). Trait fidelity is empirically idiosyncratic and model-specific—each trait–model–prompt combination requires validation before simulation use.
+We built AMADS (Academic Multi-Agent Decision Simulation), a framework to test whether AI agents given a personality trait in their instructions actually behave according to that trait, using a shared-resource extraction game as the test scenario. We found that one trait worked as expected—higher assigned risk tolerance predicted more extraction—but a "cooperative" trait backfired: agents told to be more cooperative actually took more from the shared pool, not less. AMADS is a LangGraph commons-dilemma framework where LLMs output structured extraction decisions and a deterministic, LLM-free referee computes all outcomes—eliminating circular LLM-as-judge evaluation (LLM rates its own output). In `full_experiment_v1` (45 runs; 9 trait conditions × 5 replicates; Claude Haiku 4.5; Turkish prompts), `risk_tolerance_assigned` transfers reliably (*r* = +0.678, *p* < 0.0001), while `cooperation_assigned` exhibits inverse fidelity (*r* = +0.456, *p* = 0.0016; trait effect reversed): higher assigned cooperation predicts greater extraction. Trait-fidelity analysis (assigned-vs-observed correlation), blind k-means clustering, and a formula-based control agent provide convergent validity (independent confirmation). Eleven-language and eleven-trait pilot screens reveal no stable category rule for transfer; Sonnet 4.6 cross-model replication (*n* = 40) reverses the cooperation pattern (*r* ≈ −0.84) while weakening risk (*r* ≈ +0.15). Trait fidelity (trait-to-behavior match) is empirically idiosyncratic and model-specific—each trait–model–prompt combination requires validation before simulation use.
 
 ---
 
-## 1. Introduction
+# 1. Introduction
 
-Commons dilemmas—in which self-interested extraction threatens a shared resource—have been studied for decades in behavioral and institutional economics (Walker, Gardner, & Ostrom, 1990). Recent work embeds LLM agents in similar settings to probe emergent cooperation, sustainability, and policy responses (Piatti et al., 2024). Parallel work at AAMAS 2025 explores trait-conditioned prompting for cooperative behavior in common-pool resource dilemmas (CFC-Prompt; Nguyen et al., 2025), treating natural-language trait descriptions as levers on agent decision-making. These studies assume that prompt-injected traits map onto measurable behavior, but validation is often indirect: outcomes are inferred from aggregate dialogue or LLM-as-judge scoring, raising circularity concerns.
+Commons dilemmas—in which self-interested extraction threatens a shared resource—are a foundational testbed for studying collective action under scarcity. When researchers embed psychological traits in LLM agent prompts, a central empirical question arises: does the assigned trait govern measurable behavior, or only surface-level language?
 
 The **trait injection problem** is central: when a researcher assigns `cooperation = 0.8` in a system prompt, does the agent extract less from a shared pool than when assigned `cooperation = 0.2`? Without independent, code-computed behavioral metrics, one cannot distinguish faithful trait transfer from concept misalignment, heuristic defaults, or model-specific reinterpretation of trait labels.
 
@@ -20,25 +20,35 @@ This paper makes three contributions:
 
 ---
 
-## 2. AMADS Framework
+# 2. Literature Review
 
-### 2.1 Architecture
+Hardin (1968) argued that when individuals act on private incentives in a shared-resource setting, rational self-interest can drive collective ruin—the tragedy of the commons—establishing the conceptual foundation for commons-dilemma research. Ostrom (1990) showed that communities can design institutional rules—monitoring, graduated sanctions, and locally adapted governance—to sustain common-pool resources without either privatization or Leviathan control. Walker, Gardner, and Ostrom (1990) provided experimental evidence that rent dissipation in limited-access common-pool resources depends on institutional structure, demonstrating that extraction behavior is measurable and manipulable in laboratory CPR games. Nockur, Pfattheicher, and Keller (2023) extended CPR experimentation to asymmetric versus symmetric extraction opportunities, finding that privileged and underprivileged group members respond differently when consumption rules change—a design lineage AMADS follows in treating numeric extraction as the primary behavioral endpoint.
+
+Park et al. (2023) introduced generative agents—LLM-based characters with memory, reflection, and planning—that produce believable emergent social behavior in a simulated town, inaugurating LLM social simulation as a research paradigm. Piatti et al. (2024) placed LLM agents in GovSim, a sustainability-focused society simulation, and found that cooperation can emerge or collapse depending on agent interaction dynamics and institutional interventions. Nguyen et al. (2025) proposed CFC-Prompt, a trait-conditioned prompting method for common-pool resource dilemmas presented at AAMAS 2025, treating natural-language trait descriptions as levers on cooperative decision-making in multi-agent CPR settings.
+
+Zheng et al. (2023) formalized LLM-as-a-judge evaluation through MT-Bench and Chatbot Arena, showing that strong models such as GPT-4 can approximate human preference rankings with over 80% agreement—popularizing LLM-based scoring but also highlighting position and verbosity biases inherent in judge-model evaluation. Bhandari et al. (2025) assigned OCEAN personality profiles to dyadic LLM conversational agents and measured trait expression with independent LLM judges, finding that persona consistency varies substantially across model pairs, discourse settings, and trait polarity. Bodroža, Dinić, and Bojić (2024) administered personality instruments to seven LLMs at two time points and found limited temporal stability and variable inter-rater agreement, implying that self-reported trait scores on psychological scales may not reflect stable model dispositions. Caron and Srivastava (2023) demonstrated that prefix contexts can manipulate perceived Big Five traits in language models with correlations up to 0.84 between intended and realized trait shifts—establishing early evidence that persona prompting alters generated text, but not necessarily downstream numeric decisions.
+
+Dubedy (2026) assigned socioeconomic personas to GPT-4.1 agents in a simulated gambling task and found that a "Poor" persona reported elevated risk perception while simultaneously making smaller bets—a dissociation between self-reported risk scores and behavioral bet sizes attributed to different components of model response logic. Hartley et al. (2025) investigated how Big Five personality interventions shape LLM risk-taking under cumulative prospect theory and found that trait–risk relationships established in one model generation fail to generalize consistently to other model versions, with legacy models such as GPT-4-Turbo showing unstable personality–risk mappings.
+
+Despite this breadth of work, no prior study combines commons-dilemma extraction as the behavioral endpoint, deterministic code-computed metrics that exclude LLM judges, cross-model replication under identical prompts, and systematic cross-language trait screens within a single experimental program. Classical CPR experiments measure extraction directly; LLM simulation papers often infer cooperation from dialogue or LLM scoring; personality studies typically assess self-report or text style rather than structured numeric decisions in a shared-resource game. AMADS is designed to fill this intersection.
+
+---
+
+# 3. Methodology
+
+## 3.1 AMADS Architecture
 
 AMADS implements a commons-dilemma scenario as a LangGraph `StateGraph` with **parallel fan-out**: five agent nodes decide simultaneously each round without observing co-players' current-round actions, followed by a single **Referee** node that collects decisions, updates pool dynamics, applies scheduled shocks, and computes metrics. Round progression is counter-driven (`round_number < max_rounds`); termination occurs on pool collapse or round completion.
 
-```
-                  ┌─→ Agent1 (isolated, parallel) ─┐
-Round Start   ───┼─→ Agent2 (isolated, parallel) ─┼─→ Referee (collect, compute, advance)
-                  └─→ Agent3...Agent5 ─────────────┘
-```
+![Figure 1: AMADS agent fan-out and deterministic referee flow](../figures/architecture_diagram.png)
 
 Agents receive only an `AgentInputView`—their own frozen `TraitProfile`, the current `EnvironmentSnapshot`, and `round_number`—not the full `SimulationState`. This is enforced at the function-signature level, not merely in prompts.
 
-### 2.2 Why an LLM-Free Referee
+## 3.2 Why an LLM-Free Referee
 
 A recurring failure mode in LLM simulation research is **circular evaluation**: the same model (or another LLM) judges behavior it or a sibling model produced. AMADS separates decision generation from measurement entirely. The Referee performs deterministic math only—pool update, shock application, Gini computation, cooperation scoring, violation counting—and **never calls an LLM**. LLMs produce structured `AgentDecision` records; all inferential statistics derive from numeric fields computed in code.
 
-### 2.3 State Structure and AgentDecision Schema
+## 3.3 State Structure and AgentDecision Schema
 
 State updates flow through Pydantic v2 models in `core/state.py`:
 
@@ -65,11 +75,7 @@ class AgentDecision(BaseModel):
 Pool dynamics follow a fixed recurrence:  
 `pool[t+1] = clamp(pool[t] − Σ extraction_i[t], 0, capacity) × regen_rate`.
 
----
-
-## 3. Experimental Design
-
-### 3.1 Primary Experiment: `full_experiment_v1`
+## 3.4 Primary Experiment Design (`full_experiment_v1`)
 
 | Parameter | Value |
 |---|---|
@@ -89,7 +95,7 @@ Trait values were injected via a locked symmetric system prompt (`agents/decisio
 
 Primary fidelity analyses use **round 0** extraction fractions to avoid confounding with collapse timing (round-averaged cooperation scores correlate *r* ≈ 0.95 with `collapse_round`).
 
-### 3.2 Calibration Decisions
+## 3.5 Calibration Decisions
 
 | Parameter | Locked value | Rationale (one sentence) |
 |---|---|---|
@@ -99,7 +105,7 @@ Primary fidelity analyses use **round 0** extraction fractions to avoid confound
 
 Mock-agent calibration at ratio 0.30 appeared viable but failed on real LLMs (0% round-7 shock exposure), underscoring that parameter tuning must be confirmed with actual model calls.
 
-### 3.3 Power Analysis
+## 3.6 Power Analysis
 
 Using δ = 0.05 as a uniform minimum detectable difference:
 
@@ -110,9 +116,11 @@ We therefore report cooperation-related inferential results with effect sizes an
 
 ---
 
-## 4. Primary Findings — Haiku
+# 4. Experimental Results
 
-### 4.1 Cooperation: Inverse Fidelity
+## 4.1 Primary Findings — Haiku
+
+### Cooperation: Inverse Fidelity
 
 On round-0 extraction fractions (*n* = 45):
 
@@ -122,13 +130,13 @@ Marginal pattern (micro-A/B, risk fixed at 0.2): `cooperation = 0.2` → mean ex
 
 An initial round-averaged cooperation score showed *r* = −0.345 (*p* = 0.02) but was confounded with collapse timing; round-0 unconfounded metrics supersede it.
 
-### 4.2 Risk Tolerance: Expected Direction
+### Risk Tolerance: Expected Direction
 
 - **Risk → extraction_fraction:** *r* = **+0.678**, *p* **< 0.0001** (*n* = 45).
 
 High assigned risk reliably predicts higher extraction fractions; no concept inversion was observed for this trait.
 
-### 4.3 Convergent Validity (Three Independent Methods)
+### Convergent Validity (Three Independent Methods)
 
 | Method | Risk | Cooperation |
 |---|---|---|
@@ -140,7 +148,7 @@ High assigned risk reliably predicts higher extraction fractions; no concept inv
 
 The deterministic control agent implements the design-intended mapping; mock agents in code likewise yield cooperation *r* = +1.0. Only real LLM agents invert cooperation—confirming the finding is behavioral, not implementation error. Prompt symmetry between cooperation and risk sentences was verified character-by-character.
 
-### 4.4 Concept Misalignment Mechanism
+### Concept Misalignment Mechanism
 
 Qualitative review of `justification` texts (logging-only, not used in metrics) indicates the model interprets "cooperation" not as "extract less to preserve the commons" but as **"use one's own share responsibly and sustainably."** Representative paraphrases from agent outputs include:
 
@@ -149,13 +157,13 @@ Qualitative review of `justification` texts (logging-only, not used in metrics) 
 
 Under this frame, a "cooperative" agent fulfills duty by extracting decisively yet "fairly," which aligns with **higher** numeric extraction—not lower—relative to our operational definition (`1 − extraction/max_extractable`).
 
----
+## 4.2 Generalization (Language and Trait Pilots)
 
-## 5. Generalization
-
-### 5.1 Eleven-Language Pilot (*n* = 5 per cell per language; 110 calls total)
+### Eleven-Language Pilot (*n* = 5 per cell per language; 110 calls total)
 
 To test whether inverse cooperation fidelity is a Turkish translation artifact, we ran identical micro-A/B screens (risk = 0.2 fixed; cooperation ∈ {0.2, 0.8}) in 11 languages with Haiku 4.5. Classification used |difference| ≥ 0.30 between high- and low-cooperation mean extraction.
+
+![Figure 2: Cooperation extraction difference by language (coop=0.8 − coop=0.2)](../figures/multilang_results.png)
 
 | Language | coop=0.2 avg. | coop=0.8 avg. | Difference | Class |
 |---|---|---|---|---|
@@ -175,7 +183,7 @@ To test whether inverse cooperation fidelity is a Turkish translation artifact, 
 
 **Finding:** Turkish shows the **strongest and most consistent** inverse fidelity (+3.60)—not a translation bug but the clearest signal. Six additional languages show weak inverse direction; two are trait-blind. Initial "expected direction" labels for German and Portuguese collapse to trait-blind at *n* = 10. **No language yields reliable expected-direction cooperation fidelity** at pilot scale.
 
-### 5.2 Eleven-Trait Pilot (~100 calls; English prompts)
+### Eleven-Trait Pilot (~100 calls; English prompts)
 
 Nine candidate traits beyond cooperation and risk were screened (all others fixed at 0.5; target trait ∈ {0.2, 0.8}; *n* = 5/cell).
 
@@ -188,11 +196,9 @@ Nine candidate traits beyond cooperation and risk were screened (all others fixe
 
 *Note:* `hoarding` failure may reflect single-round design (stockpiling requires multi-round accumulation) rather than pure trait blindness.
 
----
+## 4.3 Cross-Model Replication
 
-## 6. Cross-Model Replication
-
-### 6.1 Sonnet 4.6 Pilot (`sonnet_crossmodel_v1`, *n* = 40)
+### Sonnet 4.6 Pilot (`sonnet_crossmodel_v1`, *n* = 40)
 
 | Parameter | Value |
 |---|---|
@@ -208,7 +214,9 @@ Nine candidate traits beyond cooperation and risk were screened (all others fixe
 
 Sonnet marginal means (cooperation): low (0.2) ≈ 10.0 extraction vs. high (0.8) ≈ 5.35—high cooperation predicts **less** extraction, opposite to Haiku.
 
-### 6.2 Haiku vs. Sonnet Comparison
+![Figure 3: Haiku vs. Sonnet trait-fidelity Pearson r (round 0)](../figures/haiku_sonnet_comparison.png)
+
+### Haiku vs. Sonnet Comparison
 
 | Dimension | Haiku 4.5 | Sonnet 4.6 |
 |---|---|---|
@@ -223,13 +231,15 @@ Whether the apparent cooperation–risk "trade-off" (strong risk / weak-inverse 
 
 ---
 
-## 7. Discussion
+# 5. Discussion
 
-### 7.1 Practical Recommendation
+Independent evidence supports the generality of this dissociation between LLM self-report and behavior. Dubedy (2026) found that GPT-4.1 agents assigned a 'Poor' socioeconomic persona reported elevated risk perception while simultaneously making smaller bets in a gambling task—a within-persona negative correlation (ρ = −0.410, p < 2.2×10⁻¹⁶) attributed to self-reported risk score and bet-size decisions being generated by different components of model response logic. This mirrors our cooperation concept misalignment: a trait label is verbally acknowledged but does not consistently govern the corresponding numeric decision. Separately, recent work on personality-conditioned risk-taking (arXiv:2503.04735) reports that trait-risk relationships established in one model generation fail to generalize consistently to other model versions, corroborating our finding that trait fidelity is model-specific rather than a stable property of the LLM paradigm.
+
+## 5.1 Practical Recommendation
 
 Researchers should treat every candidate trait—and every model–trait–prompt combination—as **hypothesis requiring empirical micro-validation** (single-round A/B extraction screens) before committing to full factorial experiments. Category intuition (abstract vs. concrete, action vs. value, synonym pairs like risk/caution) does not predict transfer success. AMADS follows the human CPR literature in treating numeric extraction from a shared pool as the primary behavioral endpoint (Nockur et al., 2023), but our results show that assigning a cooperation label in prompt does not guarantee alignment with that operationalization in LLM agents.
 
-### 7.2 Limitations
+## 5.2 Limitations
 
 - **Models:** Primary data from one model (Haiku 4.5); cross-model evidence from one additional model (Sonnet 4.6) only.
 - **Scenario:** Single commons-dilemma formulation; generalization to bargaining or crisis scenarios is untested.
@@ -238,11 +248,11 @@ Researchers should treat every candidate trait—and every model–trait–promp
 - **Power:** Cooperation score averages underpowered at *N* = 5/condition; round-0 fidelity metrics are primary inferential evidence.
 - **Shock analysis:** Post-shock risk operationalization deferred; round-0 findings are the locked primary result.
 
-### 7.3 Transparency: `experiment_conditions` Migration
+## 5.3 Transparency: `experiment_conditions` Migration
 
 Run-to-trait mappings for `full_experiment_v1` and `control_group_v1` are stored in an `experiment_conditions` database table that underwent a post-hoc schema migration (`core/database.py`) to normalize condition identifiers; all analyses join through this table and remain consistent with locked findings.
 
-### 7.4 Future Work
+## 5.4 Future Work
 
 - **Cross-model panel:** Replicate the full 9×5 factorial on ≥3 models (e.g., Opus, GPT-4 class) under preregistered analysis plans to test whether cooperation–risk trade-offs are systematic.
 - **Heterogeneous agent design:** Assign mixed trait profiles within runs to test whether homogeneous conditioning amplifies misalignment.
@@ -250,19 +260,26 @@ Run-to-trait mappings for `full_experiment_v1` and `control_group_v1` are stored
 
 ---
 
-## 8. Conclusion
+# 6. Conclusion
 
 We built AMADS to measure LLM agent behavior in commons dilemmas through deterministic, non-circular evaluation, and ran a 45-run factorial experiment plus convergent validation, multilingual/trait pilots, and cross-model replication. Haiku 4.5 shows reliable risk transfer but inverse cooperation fidelity driven by concept misalignment; neither language nor trait category predicts success, and Sonnet 4.6 reverses the cooperation pattern under the same prompt. We recommend empirical micro-validation of every trait–model pair before using LLM agents as stand-ins for psychologically profiled populations in simulation research.
 
 ---
 
-## References
+# References
 
 *(DOIs provided where available; arXiv preprints noted.)*
 
-- Piatti, G., Rane, A., Shi, W., Hofstätter, F., Li, B., Gao, Y., Bernstein, A., & Sumita, E. (2024). Cooperate or Collapse: Emergence of Sustainability Behaviors in a Society of LLM Agents. *arXiv:2404.16698*.
-- Nguyen, D., Le, H., Do, K., Gupta, S., Venkatesh, S., & Tran, T. (2025). Navigating Social Dilemmas with LLM-based Agents via Consideration of Future Consequences: Extended Abstract. In *Proceedings of the 24th International Conference on Autonomous Agents and Multiagent Systems (AAMAS 2025)* (pp. 2693–2695). IFAAMAS.
+- Bhandari, P., Fay, N., Wise, M. J., Datta, A., Meek, S., Naseem, U., & Nasim, M. (2025). Can LLM Agents Maintain a Persona in Discourse? In *Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing* (pp. 29213–29229). Association for Computational Linguistics. https://doi.org/10.18653/v1/2025.emnlp-main.1487
+- Bodroža, B., Dinić, B. M., & Bojić, L. (2024). Personality testing of large language models: limited temporal stability, but highlighted prosociality. *Royal Society Open Science*, 11(8), 240180. https://doi.org/10.1098/rsos.240180
+- Caron, G., & Srivastava, S. (2023). Manipulating the Perceived Personality Traits of Language Models. In *Findings of the Association for Computational Linguistics: EMNLP 2023* (pp. 2370–2386). Association for Computational Linguistics. https://doi.org/10.18653/v1/2023.findings-emnlp.156
+- Dubedy, S. (2026). Persona-Conditioned Risk Behavior in Large Language Models: A Simulated Gambling Study with GPT-4.1. *arXiv:2603.15831*.
 - Hardin, G. (1968). The tragedy of the commons. *Science*, 162(3859), 1243–1248.
+- Hartley, J., Hamill, C., Seddon, D., Batra, D., Okhrati, R., & Khraishi, R. (2025). How Personality Traits Shape LLM Risk-Taking Behaviour. In *Findings of the Association for Computational Linguistics: ACL 2025* (pp. 21068–21092). Association for Computational Linguistics. https://doi.org/10.18653/v1/2025.findings-acl.1085
 - Nockur, L., Pfattheicher, S., & Keller, J. (2023). From asymmetric to symmetric consumption opportunities: Extractions from common resources by privileged and underprivileged group members. *Group Processes & Intergroup Relations*, 26(8), 1819–1840. https://doi.org/10.1177/13684302221132722
+- Nguyen, D., Le, H., Do, K., Gupta, S., Venkatesh, S., & Tran, T. (2025). Navigating Social Dilemmas with LLM-based Agents via Consideration of Future Consequences: Extended Abstract. In *Proceedings of the 24th International Conference on Autonomous Agents and Multiagent Systems (AAMAS 2025)* (pp. 2693–2695). IFAAMAS.
 - Ostrom, E. (1990). *Governing the Commons: The Evolution of Institutions for Collective Action*. Cambridge University Press.
+- Park, J. S., O'Brien, J. C., Cai, C. J., Morris, M. R., Liang, P., & Bernstein, M. S. (2023). Generative Agents: Interactive Simulacra of Human Behavior. In *Proceedings of the 36th Annual ACM Symposium on User Interface Software and Technology* (UIST '23). https://doi.org/10.1145/3586183.3606763
+- Piatti, G., Rane, A., Shi, W., Hofstätter, F., Li, B., Gao, Y., Bernstein, A., & Sumita, E. (2024). Cooperate or Collapse: Emergence of Sustainability Behaviors in a Society of LLM Agents. *arXiv:2404.16698*.
 - Walker, J. M., Gardner, R., & Ostrom, E. (1990). Rent dissipation in a limited-access common-pool resource: Experimental evidence. *Journal of Environmental Economics and Management*, 19(3), 203–211. https://doi.org/10.1016/0095-0696(90)90008-2
+- Zheng, L., Chiang, W.-L., Sheng, Y., Zhuang, S., Wu, Z., Zhuang, Y., Lin, Z., Li, Z., Li, D., Xing, E., Zhang, H., Gonzalez, J. E., & Stoica, I. (2023). Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena. In *Advances in Neural Information Processing Systems 36 (NeurIPS 2023)*. https://arxiv.org/abs/2306.05685
