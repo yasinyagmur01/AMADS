@@ -1,0 +1,65 @@
+========================================================================
+BARGAINING v1 — MICRO-PILOT BAŞLIYOR
+========================================================================
+  experiment_id : bargaining_v1
+  toplam run    : 10
+  maliyet sınırı: $1.00
+
+  bargaining_conditions tablosuna 10 satır yazıldı/güncellendi.
+
+  → pcoop_low_prisk_low_rcoop_medium_rep1  (p_coop=0.2, p_risk=0.2, r_coop=0.5, rep=1)
+
+  → pcoop_low_prisk_low_rcoop_medium_rep2  (p_coop=0.2, p_risk=0.2, r_coop=0.5, rep=2)
+
+  → pcoop_low_prisk_low_rcoop_medium_rep3  (p_coop=0.2, p_risk=0.2, r_coop=0.5, rep=3)
+
+  → pcoop_low_prisk_low_rcoop_medium_rep4  (p_coop=0.2, p_risk=0.2, r_coop=0.5, rep=4)
+
+  → pcoop_low_prisk_low_rcoop_medium_rep5  (p_coop=0.2, p_risk=0.2, r_coop=0.5, rep=5)
+
+========================================================================
+KOŞUL TAMAMLANDI — pcoop_low_prisk_low_rcoop_medium
+========================================================================
+  traits                 : p_coop=0.2, p_risk=0.2, r_coop=0.5
+  bu koşul maliyeti      : $0.3806
+  ilerleme               : 5/10 run
+  kümülatif maliyet      : $0.3806 / $1.00
+    pcoop_low_prisk_low_rcoop_medium_rep1: 15 round, keep_frac=0.653, accept=0.87, $0.0807
+    pcoop_low_prisk_low_rcoop_medium_rep2: 15 round, keep_frac=0.752, accept=1.00, $0.0744
+    pcoop_low_prisk_low_rcoop_medium_rep3: 15 round, keep_frac=0.752, accept=1.00, $0.0743
+    pcoop_low_prisk_low_rcoop_medium_rep4: 15 round, keep_frac=0.752, accept=1.00, $0.0758
+    pcoop_low_prisk_low_rcoop_medium_rep5: 15 round, keep_frac=0.752, accept=1.00, $0.0754
+
+  → pcoop_high_prisk_low_rcoop_medium_rep1  (p_coop=0.8, p_risk=0.2, r_coop=0.5, rep=1)
+
+  → pcoop_high_prisk_low_rcoop_medium_rep2  (p_coop=0.8, p_risk=0.2, r_coop=0.5, rep=2)
+
+  → pcoop_high_prisk_low_rcoop_medium_rep3  (p_coop=0.8, p_risk=0.2, r_coop=0.5, rep=3)
+
+  → pcoop_high_prisk_low_rcoop_medium_rep4  (p_coop=0.8, p_risk=0.2, r_coop=0.5, rep=4)
+
+  → pcoop_high_prisk_low_rcoop_medium_rep5  (p_coop=0.8, p_risk=0.2, r_coop=0.5, rep=5)
+
+========================================================================
+KOŞUL TAMAMLANDI — pcoop_high_prisk_low_rcoop_medium
+========================================================================
+  traits                 : p_coop=0.8, p_risk=0.2, r_coop=0.5
+  bu koşul maliyeti      : $0.3873
+  ilerleme               : 10/10 run
+  kümülatif maliyet      : $0.7680 / $1.00
+    pcoop_high_prisk_low_rcoop_medium_rep1: 15 round, keep_frac=0.439, accept=1.00, $0.0770
+    pcoop_high_prisk_low_rcoop_medium_rep2: 15 round, keep_frac=0.439, accept=1.00, $0.0771
+    pcoop_high_prisk_low_rcoop_medium_rep3: 15 round, keep_frac=0.439, accept=1.00, $0.0764
+    pcoop_high_prisk_low_rcoop_medium_rep4: 15 round, keep_frac=0.439, accept=1.00, $0.0781
+    pcoop_high_prisk_low_rcoop_medium_rep5: 15 round, keep_frac=0.465, accept=1.00, $0.0786
+
+========================================================================
+DENEY ÖZET — bargaining_v1
+========================================================================
+  tamamlanan run         : 10
+  toplam maliyet         : $0.7680
+  DB — bargaining_rounds  : 150
+  DB — bargaining_metrics : 150
+  DB — bargaining_conditions: 10
+
+  (fiyatlandırma: $1.00/M input, $5.00/M output — Claude Haiku 4.5)
