@@ -5,8 +5,8 @@ Kontrol grubu deneyi — LLM yok, deterministik control_agent.
 Formül: extraction = declared_max × (1 − cooperation_assigned); risk kullanılmaz.
 
 Kullanım (repo kökünden):
-    python experiments/run_control_experiment.py --plan
-    python experiments/run_control_experiment.py
+    python experiments/cpr/run_control_experiment.py --plan
+    python experiments/cpr/run_control_experiment.py
 """
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ from pathlib import Path
 
 os.environ.setdefault("LANGSMITH_TRACING", "false")
 
-_ROOT = Path(__file__).resolve().parent.parent
+_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 

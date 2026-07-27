@@ -3,7 +3,7 @@ Generate publication figures for docs/paper_draft.md.
 
 Reads Haiku trait-fidelity Pearson r from data/results.db (read-only),
 Sonnet r from data/sonnet_crossmodel_v1.csv, and multilang diffs from
-data/multilang_results.csv. Writes PNGs under figures/.
+data/multilang_results.csv. Writes PNGs under docs/figures/.
 
 Usage (repo root):
     venv/bin/python analysis/generate_paper_figures.py
@@ -23,7 +23,7 @@ if str(_ROOT) not in sys.path:
 
 from core.database import RESULTS_DB_PATH
 
-FIGURES_DIR = _ROOT / "figures"
+FIGURES_DIR = _ROOT / "docs" / "figures"
 MULTILANG_CSV = _ROOT / "data" / "multilang_results.csv"
 SONNET_CSV = _ROOT / "data" / "sonnet_crossmodel_v1.csv"
 HAIKU_EXPERIMENT = "full_experiment_v1"

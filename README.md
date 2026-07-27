@@ -17,16 +17,19 @@ AMADS simulates multi-agent resource extraction games where LLM-powered agents m
 ## Project Structure
 
 ```
-core/           # State models (Pydantic), LangGraph wiring, config, SQLite persistence
-agents/         # LLM decision agent, mock/control agents
-referee/        # Deterministic Referee node (metrics, pool dynamics, termination)
-analysis/       # Trait fidelity, clustering, synthesis, prompt A/B scripts
-experiments/    # Full factorial and control-group experiment runners
-tests/          # Unit tests (Referee metrics, no LLM)
-docs/           # Architecture notes, analysis plans, diagrams
-data/           # Experiment CSV/MD outputs and SQLite databases (*.db gitignored)
-environment/    # Shock schedules and environmental events
-scripts/legacy/ # Deprecated one-off dev/test runners (pre-paper cleanup)
+core/                 # Shared state, config, SQLite persistence, CPR graph wiring
+agents/               # LLM decision agent, mock/control agents (CPR)
+referee/              # Deterministic CPR Referee node
+scenarios/bargaining/ # Ultimatum bargaining scenario (isolated from CPR)
+analysis/             # Trait fidelity, clustering, synthesis, prompt A/B scripts
+experiments/cpr/      # CPR factorial / control / heterogeneous / prompt-revision runners
+experiments/bargaining/ # Bargaining experiment runner
+scripts/cpr/          # CPR condition seed scripts
+scripts/bargaining/   # Bargaining condition seed scripts
+tests/                # Unit tests (Referee metrics, no LLM)
+docs/                 # Master reference, paper draft, figures, analysis plans
+data/                 # Experiment CSV/MD outputs and SQLite databases (*.db gitignored)
+environment/          # Shock schedules and environmental events
 ```
 
 ## Installation
@@ -43,10 +46,10 @@ From the repository root:
 
 ```bash
 # Preview the 45-run plan (9 conditions × 5 replications) without calling the API
-python experiments/run_full_experiment.py --plan
+python experiments/cpr/run_full_experiment.py --plan
 
 # Run full_experiment_v1 (requires ANTHROPIC_API_KEY; writes to data/results.db)
-python experiments/run_full_experiment.py
+python experiments/cpr/run_full_experiment.py
 ```
 
 ## Running Analysis
@@ -65,7 +68,7 @@ Requires `data/results.db` populated by `full_experiment_v1`.
 
 ## Important Note on Language
 
-The system prompt delivered to LLM agents in full_experiment_v1 was intentionally written in Turkish. This was a deliberate design choice documented in AMADS_MASTER_REFERENCE.md (Section 18.4.1), where Turkish produced the strongest and cleanest cooperation signal. New experiments should use English prompts (see analysis/prompt_ab_multilang.py for cross-language comparison results).
+The system prompt delivered to LLM agents in full_experiment_v1 was intentionally written in Turkish. This was a deliberate design choice documented in docs/AMADS_MASTER_REFERENCE.md (Section 18.4.1), where Turkish produced the strongest and cleanest cooperation signal. New experiments should use English prompts (see analysis/prompt_ab_multilang.py for cross-language comparison results).
 
 ## Citation
 

@@ -22,7 +22,7 @@ if str(_ROOT) not in sys.path:
 
 from core.config import settings
 from core.database import RESULTS_DB_PATH
-from experiments.heterogeneous_conditions import (
+from experiments.cpr.heterogeneous_conditions import (
     CONDITION_ORDER,
     CONDITIONS,
     EXPERIMENT_ID,

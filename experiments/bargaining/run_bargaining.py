@@ -5,10 +5,10 @@ Isolated from CPR commons dilemma. Same abstract trait-prompt style as
 full_experiment_v1 (not behavioral prompt_revision_v1 wording).
 
 Usage (repo root):
-    python experiments/run_bargaining.py --plan --micro-pilot
-    python experiments/run_bargaining.py --plan
-    python experiments/run_bargaining.py --micro-pilot   # Faz B — API
-    python experiments/run_bargaining.py                 # Faz C — API (after B)
+    python experiments/bargaining/run_bargaining.py --plan --micro-pilot
+    python experiments/bargaining/run_bargaining.py --plan
+    python experiments/bargaining/run_bargaining.py --micro-pilot   # Faz B — API
+    python experiments/bargaining/run_bargaining.py                 # Faz C — API (after B)
 
 Gereksinimler (API koşuları): ANTHROPIC_API_KEY (.env). --plan API çağırmaz.
 """
@@ -23,7 +23,7 @@ from dataclasses import dataclass
 from itertools import product
 from pathlib import Path
 
-_ROOT = Path(__file__).resolve().parent.parent
+_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 

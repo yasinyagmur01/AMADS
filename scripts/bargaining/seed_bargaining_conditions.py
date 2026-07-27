@@ -2,10 +2,10 @@
 Seed bargaining_conditions for bargaining_v1 / bargaining_risk_v1.
 
 Usage (repo root):
-    python scripts/seed_bargaining_conditions.py --micro-only
-    python scripts/seed_bargaining_conditions.py --risk-micro
-    python scripts/seed_bargaining_conditions.py --risk-micro --check
-    python scripts/seed_bargaining_conditions.py --dry-run
+    python scripts/bargaining/seed_bargaining_conditions.py --micro-only
+    python scripts/bargaining/seed_bargaining_conditions.py --risk-micro
+    python scripts/bargaining/seed_bargaining_conditions.py --risk-micro --check
+    python scripts/bargaining/seed_bargaining_conditions.py --dry-run
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ import sys
 from itertools import product
 from pathlib import Path
 
-_ROOT = Path(__file__).resolve().parent.parent
+_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 

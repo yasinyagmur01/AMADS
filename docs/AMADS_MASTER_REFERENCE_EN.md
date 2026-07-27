@@ -302,37 +302,7 @@ These are applied to existing data **after** the core simulation finishes, with 
 
 ## 14. Docker & Service Architecture
 
-```yaml
-services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile.app
-    volumes:
-      - ./data:/app/data          # SQLite kalıcı
-    env_file:
-      - .env                       # ANTHROPIC_API_KEY, LANGSMITH_API_KEY, LANGSMITH_TRACING=true
-    command: python run_simulation.py
-
-  analytics:
-    build:
-      context: .
-      dockerfile: Dockerfile.streamlit
-    volumes:
-      - ./data:/app/data:ro        # SADECE okuma — analiz katmanı veriye yazamaz
-    ports:
-      - "8501:8501"
-    depends_on:
-      - app
-```
-
-| Service | Status |
-|---|---|
-| app | LangGraph runtime, single container |
-| analytics | Streamlit, read-only data access |
-| db (SQLite) | NOT a separate container — file-based, shared via volume |
-| ChromaDB | Not included — will not be added until isolation risk is resolved |
-| LangSmith | Not a container — Cloud SaaS, API key only via `.env` |
+> **2026-07-28:** `Dockerfile.app` / `docker-compose.yml` removed (broken refs: `run_simulation.py`, Streamlit Dockerfile). Run path: local `venv` + `experiments/cpr|bargaining`. SQLite is file-based (`data/*.db`). LangSmith via `.env` only (Cloud SaaS). ChromaDB not included.
 
 ---
 
@@ -340,28 +310,20 @@ services:
 
 ```
 amads/
-├── core/
-│   ├── state.py          # Bölüm 4'teki tüm Pydantic şemaları
-│   ├── graph.py           # LangGraph StateGraph kurulumu
-│   └── config.py          # max_rounds, agent sayısı, hard cap'ler
-├── agents/
-│   ├── decision_agent.py  # Gerçek LLM agent
-│   └── control_agent.py   # Kontrol grubu (LLM'siz, sabit kural)
-├── referee/
-│   └── referee_node.py    # Deterministik hesaplama, LLM çağrısı YOK
-├── environment/
-│   └── shocks.py           # Seedli şok takvimi üretici
+├── core/                 # state, graph, config, database (shared CPR infra)
+├── agents/               # decision / control / mock
+├── referee/              # deterministic CPR Referee
+├── environment/          # shocks
+├── scenarios/bargaining/ # ultimatum scenario
+├── experiments/cpr/      # full / control / heterogeneous / prompt_revision
+├── experiments/bargaining/
 ├── analysis/
-│   ├── clustering.py
-│   ├── trait_fidelity.py
-│   ├── synthesis_report.py
-│   └── export_experiment_summary.py
+├── scripts/cpr/          # seed scripts
+├── scripts/bargaining/
 ├── tests/
-│   └── (mock/dry-run senaryoları)
-├── docker-compose.yml
-├── Dockerfile.app
-├── Dockerfile.streamlit
-├── CLAUDE.md               # Cursor için kural dosyası
+├── docs/                 # master reference, paper, figures/
+├── data/                 # results.db, bargaining_results.db, archive_results.db, CSV
+├── .cursorrules
 └── README.md
 ```
 

@@ -6,9 +6,9 @@ temperature=0.2, EXTRACTION_LIMIT_RATIO=0.12). Tek fark: decision_agent
 cooperation satırı davranışsal tanım kullanır (experiment_id = prompt_revision_v1).
 
 Kullanım (repo kökünden):
-    python experiments/run_prompt_revision.py --plan
-    python experiments/run_prompt_revision.py --micro-pilot   # 10 run, API
-    python experiments/run_prompt_revision.py                 # 45 run, API
+    python experiments/cpr/run_prompt_revision.py --plan
+    python experiments/cpr/run_prompt_revision.py --micro-pilot   # 10 run, API
+    python experiments/cpr/run_prompt_revision.py                 # 45 run, API
 
 Gereksinimler: ANTHROPIC_API_KEY (.env). Mock yok.
 """
@@ -23,7 +23,7 @@ from dataclasses import dataclass
 from itertools import product
 from pathlib import Path
 
-_ROOT = Path(__file__).resolve().parent.parent
+_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 

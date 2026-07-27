@@ -8,9 +8,9 @@ Writes:
 Does not modify full_experiment_v1 / prompt_revision_v1 rows.
 
 Usage (repo root):
-    python scripts/seed_heterogeneous_conditions.py
-    python scripts/seed_heterogeneous_conditions.py --dry-run
-    python scripts/seed_heterogeneous_conditions.py --check
+    python scripts/cpr/seed_heterogeneous_conditions.py
+    python scripts/cpr/seed_heterogeneous_conditions.py --dry-run
+    python scripts/cpr/seed_heterogeneous_conditions.py --check
 """
 
 from __future__ import annotations
@@ -20,12 +20,12 @@ import sqlite3
 import sys
 from pathlib import Path
 
-_ROOT = Path(__file__).resolve().parent.parent
+_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
 from core.database import RESULTS_DB_PATH, register_experiment_conditions
-from experiments.heterogeneous_conditions import (
+from experiments.cpr.heterogeneous_conditions import (
     CONDITION_ORDER,
     CONDITIONS,
     EXPERIMENT_ID,

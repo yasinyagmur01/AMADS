@@ -6,9 +6,9 @@ Does not modify existing full_experiment_v1 rows (composite UNIQUE on
 experiment_id + run_id).
 
 Usage (repo root):
-    python scripts/seed_prompt_revision_conditions.py
-    python scripts/seed_prompt_revision_conditions.py --dry-run
-    python scripts/seed_prompt_revision_conditions.py --check
+    python scripts/cpr/seed_prompt_revision_conditions.py
+    python scripts/cpr/seed_prompt_revision_conditions.py --dry-run
+    python scripts/cpr/seed_prompt_revision_conditions.py --check
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ import sys
 from itertools import product
 from pathlib import Path
 
-_ROOT = Path(__file__).resolve().parent.parent
+_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 

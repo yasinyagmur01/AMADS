@@ -49,8 +49,8 @@ except ImportError:
     plt = None  # type: ignore[assignment]
 
 DEFAULT_EXPERIMENT_ID = "full_experiment_v1"
-COOP_PLOT_PATH = "data/trait_fidelity_coop.png"
-RISK_PLOT_PATH = "data/trait_fidelity_risk.png"
+COOP_PLOT_PATH = "docs/figures/trait_fidelity_coop.png"
+RISK_PLOT_PATH = "docs/figures/trait_fidelity_risk.png"
 
 
 @dataclass(frozen=True)
@@ -455,7 +455,7 @@ def run_analysis(
             xlabel="cooperation_assigned",
             ylabel="extraction_fraction (düşük = daha işbirlikçi)",
             title=f"Coop Fidelity — fraction ({experiment_id}, {window_label})",
-            out_path=Path(f"data/trait_fidelity_coop_{suffix}.png"),
+            out_path=Path(f"docs/figures/trait_fidelity_coop_{suffix}.png"),
         )
         _save_scatter(
             x=risk_x,
@@ -463,7 +463,7 @@ def run_analysis(
             xlabel="risk_tolerance_assigned",
             ylabel="extraction_fraction",
             title=f"Risk Effect — fraction ({experiment_id}, {window_label})",
-            out_path=Path(f"data/trait_fidelity_risk_{suffix}.png"),
+            out_path=Path(f"docs/figures/trait_fidelity_risk_{suffix}.png"),
         )
         # Geriye dönük uyumluluk
         _save_scatter(

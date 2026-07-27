@@ -45,7 +45,7 @@ except ImportError as exc:
 from analysis.trait_fidelity import RunFidelityRow
 
 DEFAULT_EXPERIMENT_ID = "full_experiment_v1"
-PLOT_PATH = "data/clustering_result.png"
+PLOT_PATH = "docs/figures/clustering_result.png"
 FEATURE_NAMES = [
     "extraction_fraction",
     "gini_coefficient",

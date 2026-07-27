@@ -40,7 +40,7 @@ Despite this breadth of work, no prior study combines commons-dilemma extraction
 
 AMADS implements a commons-dilemma scenario as a LangGraph `StateGraph` with **parallel fan-out**: five agent nodes decide simultaneously each round without observing co-players' current-round actions, followed by a single **Referee** node that collects decisions, updates pool dynamics, applies scheduled shocks, and computes metrics. Round progression is counter-driven (`round_number < max_rounds`); termination occurs on pool collapse or round completion.
 
-![Figure 1: AMADS agent fan-out and deterministic referee flow](../figures/architecture_diagram.png)
+![Figure 1: AMADS agent fan-out and deterministic referee flow](figures/architecture_diagram.png)
 
 Agents receive only an `AgentInputView`—their own frozen `TraitProfile`, the current `EnvironmentSnapshot`, and `round_number`—not the full `SimulationState`. This is enforced at the function-signature level, not merely in prompts.
 
@@ -163,7 +163,7 @@ Under this frame, a "cooperative" agent fulfills duty by extracting decisively y
 
 To test whether inverse cooperation fidelity is a Turkish translation artifact, we ran identical micro-A/B screens (risk = 0.2 fixed; cooperation ∈ {0.2, 0.8}) in 11 languages with Haiku 4.5. Classification used |difference| ≥ 0.30 between high- and low-cooperation mean extraction.
 
-![Figure 2: Cooperation extraction difference by language (coop=0.8 − coop=0.2)](../figures/multilang_results.png)
+![Figure 2: Cooperation extraction difference by language (coop=0.8 − coop=0.2)](figures/multilang_results.png)
 
 | Language | coop=0.2 avg. | coop=0.8 avg. | Difference | Class |
 |---|---|---|---|---|
@@ -214,7 +214,7 @@ Nine candidate traits beyond cooperation and risk were screened (all others fixe
 
 Sonnet marginal means (cooperation): low (0.2) ≈ 10.0 extraction vs. high (0.8) ≈ 5.35—high cooperation predicts **less** extraction, opposite to Haiku.
 
-![Figure 3: Haiku vs. Sonnet trait-fidelity Pearson r (round 0)](../figures/haiku_sonnet_comparison.png)
+![Figure 3: Haiku vs. Sonnet trait-fidelity Pearson r (round 0)](figures/haiku_sonnet_comparison.png)
 
 ### Haiku vs. Sonnet Comparison
 
