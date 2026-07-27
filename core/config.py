@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     ANTHROPIC_API_KEY: Optional[str] = None
     LANGSMITH_API_KEY: Optional[str] = None
 
-    # Anthropic model (Bölüm 10)
+    # Anthropic model (default for locked Haiku experiments)
     ANTHROPIC_MODEL: str = "claude-haiku-4-5-20251001"
 
     # LangSmith Tracing
@@ -24,15 +24,13 @@ class Settings(BaseSettings):
     # Simulation Constraints (Hard Caps)
     AGENT_COUNT: int = 5
     MAX_ROUNDS: int = 15
-    # Round başına çekilebilir üst sınır: pool_after * EXTRACTION_LIMIT_RATIO
-    # Gerçek LLM testleriyle kalibre edildi (3 run, sabit trait kompozisyonu,
-    # hepsi round 12'de collapse). Not: bu sabit trait kompozisyonuyla varyans
-    # GÖRÜLMEDİ — bu beklenen bir durum, çünkü temperature=0.2 + aynı trait'ler
-    # + aynı senaryo doğası gereği tutarlı sonuç üretir. Gerçek varyans, asıl
-    # deneyde run'lar arası trait kompozisyonu DEĞİŞTİRİLEREK elde edilecek
-    # (Bölüm 12, istatistiksel deney tasarımı).
+    # Per-round extraction cap: pool_after * EXTRACTION_LIMIT_RATIO.
+    # Calibrated with real LLM tests (3 runs, fixed trait composition,
+    # all collapsed at round 12). Low within-condition variance at
+    # temperature=0.2 with identical traits is expected; experimental
+    # variance comes from changing traits across conditions (Section 12).
     EXTRACTION_LIMIT_RATIO: float = 0.12
-    # Havuz çöküş eşiği: pool_capacity * COLLAPSE_EPSILON_RATIO
+    # Pool collapse threshold: pool_capacity * COLLAPSE_EPSILON_RATIO
     COLLAPSE_EPSILON_RATIO: float = 0.01
 
     # Defaults

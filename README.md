@@ -68,7 +68,7 @@ Requires `data/results.db` populated by `full_experiment_v1`.
 
 ## Important Note on Language
 
-The system prompt delivered to LLM agents in full_experiment_v1 was intentionally written in Turkish. This was a deliberate design choice documented in docs/AMADS_MASTER_REFERENCE.md (Section 18.4.1), where Turkish produced the strongest and cleanest cooperation signal. New experiments should use English prompts (see analysis/prompt_ab_multilang.py for cross-language comparison results).
+The system prompt delivered to LLM agents in `full_experiment_v1` (and locked bargaining pilots) was intentionally written in Turkish. That is a documented historical variable, not an oversight — see `docs/README.md` and master reference Section 18.4.1. **New experiment_ids use English** symbolic prompts (e.g. `python experiments/cpr/run_full_experiment.py --english` → `full_experiment_en_v1`). Architecture SSOT: `docs/AMADS_MASTER_REFERENCE_EN.md`.
 
 ## Citation
 

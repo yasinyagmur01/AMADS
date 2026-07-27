@@ -1,14 +1,15 @@
 """
-Bölüm 12 — tam faktöriyel deney koşusu (9 koşul × 5 tekrar = 45 run).
+Section 12 — full factorial experiment (9 conditions × 5 replications = 45 runs).
 
-9 koşul: cooperation_assigned × risk_tolerance_assigned ∈ {0.2, 0.5, 0.8}².
-Her koşulda 5 agent'a aynı trait çifti atanır (koşullar arası fark, agent içi yok).
+9 conditions: cooperation_assigned × risk_tolerance_assigned ∈ {0.2, 0.5, 0.8}².
+Within each condition, all 5 agents share the same trait pair.
 
-Kullanım (repo kökünden):
-    python experiments/cpr/run_full_experiment.py --plan     # 45 run planını göster, çalıştırma
-    python experiments/cpr/run_full_experiment.py            # deneyi başlat
+Usage (from repo root):
+    python experiments/cpr/run_full_experiment.py --plan       # print plan, no API calls
+    python experiments/cpr/run_full_experiment.py              # run full_experiment_v1 (Turkish)
+    python experiments/cpr/run_full_experiment.py --english    # run full_experiment_en_v1
 
-Gereksinimler: ANTHROPIC_API_KEY (.env), gerçek Claude Haiku 4.5 (mock yok).
+Requires: ANTHROPIC_API_KEY (.env), real Claude Haiku 4.5 (no mock).
 """
 
 from __future__ import annotations
@@ -38,6 +39,8 @@ from core.state import EnvironmentSnapshot, SimulationState, TraitProfile
 from environment.shocks import build_mock_dev_shock_schedule
 
 EXPERIMENT_ID = "full_experiment_v1"
+EXPERIMENT_ID_EN = "full_experiment_en_v1"
+EXPERIMENT_ID_LOCKED = "full_experiment_v1"
 MAX_ROUNDS = 15
 REPLICATIONS = 5
 COST_CAP_USD = 7.00
@@ -166,23 +169,23 @@ async def _run_single(spec: RunSpec, app) -> RunSummary:
 
 def _print_plan(specs: list[RunSpec]) -> None:
     print("=" * 72)
-    print("BÖLÜM 12 — DENEY PLANI (çalıştırılmadı)")
+    print("SECTION 12 — EXPERIMENT PLAN (dry run)")
     print("=" * 72)
     print(f"  experiment_id          : {EXPERIMENT_ID}")
     print(f"  database               : {RESULTS_DB_PATH}")
-    print(f"  koşul sayısı           : {len(TRAIT_LEVELS) ** 2} (3×3 kartezyen)")
-    print(f"  tekrar/koşul (N)       : {REPLICATIONS}")
-    print(f"  toplam run             : {len(specs)}")
+    print(f"  conditions             : {len(TRAIT_LEVELS) ** 2} (3×3 cartesian)")
+    print(f"  replications/condition : {REPLICATIONS}")
+    print(f"  total runs             : {len(specs)}")
     print(f"  max_rounds             : {MAX_ROUNDS}")
     print(f"  model                  : {settings.ANTHROPIC_MODEL}")
     print(f"  temperature            : {settings.TEMPERATURE}")
     print(f"  EXTRACTION_LIMIT_RATIO : {settings.EXTRACTION_LIMIT_RATIO}")
-    print(f"  agent sayısı           : {settings.AGENT_COUNT} (hepsi gerçek LLM, aynı trait/koşul)")
-    print(f"  maliyet güvenlik sınırı: ${COST_CAP_USD:.2f}")
-    print(f"  ilerleme raporu        : her {REPLICATIONS} run (koşul bitince)")
+    print(f"  agents                 : {settings.AGENT_COUNT} (all real LLM, same traits/condition)")
+    print(f"  cost safety cap        : ${COST_CAP_USD:.2f}")
+    print(f"  progress report        : every {REPLICATIONS} runs (end of condition)")
     print()
 
-    print("Koşul matrisi (coop \\ risk):")
+    print("Condition matrix (coop \\ risk):")
     header = f"{'':>10}" + "".join(f"{r:>12}" for r in TRAIT_LEVELS)
     print(header)
     for coop in TRAIT_LEVELS:
@@ -191,7 +194,7 @@ def _print_plan(specs: list[RunSpec]) -> None:
             row += f"{TRAIT_LEVELS[coop]:.1f}/{TRAIT_LEVELS[risk]:.1f}".rjust(12)
         print(row)
 
-    print("\n45 run listesi:")
+    print("\n45-run list:")
     print(f"  {'#':>3}  {'run_id':<32} {'coop':>5} {'risk':>5}  rep")
     print("  " + "-" * 58)
     for i, spec in enumerate(specs, 1):
@@ -200,7 +203,7 @@ def _print_plan(specs: list[RunSpec]) -> None:
             f"{spec.coop_value:5.1f} {spec.risk_value:5.1f}  {spec.replication}"
         )
 
-    print("\nKoşul grupları (her biri 5 tekrar):")
+    print("\nCondition groups (5 replications each):")
     current_key = None
     group_num = 0
     for spec in specs:
@@ -209,7 +212,7 @@ def _print_plan(specs: list[RunSpec]) -> None:
             group_num += 1
             current_key = key
             print(
-                f"  Grup {group_num}: {_condition_key(spec)} "
+                f"  Group {group_num}: {_condition_key(spec)} "
                 f"(coop={spec.coop_value}, risk={spec.risk_value})"
             )
 
@@ -226,14 +229,14 @@ def _print_condition_checkpoint(
     cond_cost = sum(s.cost_usd for s in condition_summaries)
     spec = condition_specs[0]
     print(f"\n{'=' * 72}")
-    print(f"KOŞUL TAMAMLANDI — {condition_label}")
+    print(f"CONDITION COMPLETE — {condition_label}")
     print(f"{'=' * 72}")
     print(f"  trait                  : coop={spec.coop_value} ({spec.coop_level}), "
           f"risk={spec.risk_value} ({spec.risk_level})")
-    print(f"  bu koşul maliyeti      : ${cond_cost:.4f}")
-    print(f"  ilerleme               : {runs_completed}/{total_runs} run")
-    print(f"  kümülatif maliyet      : ${total_cost:.4f} / ${COST_CAP_USD:.2f}")
-    print("  tekrar özeti:")
+    print(f"  condition cost         : ${cond_cost:.4f}")
+    print(f"  progress               : {runs_completed}/{total_runs} runs")
+    print(f"  cumulative cost        : ${total_cost:.4f} / ${COST_CAP_USD:.2f}")
+    print("  replication summary:")
     for s in condition_summaries:
         print(
             f"    {s.run_id}: {s.rounds_played} round, "
@@ -244,13 +247,13 @@ def _print_condition_checkpoint(
 
 def _print_final_summary(summaries: list[RunSummary], stopped_early: bool) -> None:
     print(f"\n{'=' * 72}")
-    print(f"DENEY ÖZET — {EXPERIMENT_ID}")
+    print(f"EXPERIMENT SUMMARY — {EXPERIMENT_ID}")
     print(f"{'=' * 72}")
     total_cost = sum(s.cost_usd for s in summaries)
-    print(f"  tamamlanan run         : {len(summaries)}")
-    print(f"  toplam maliyet         : ${total_cost:.4f}")
+    print(f"  completed runs         : {len(summaries)}")
+    print(f"  total cost             : ${total_cost:.4f}")
     if stopped_early:
-        print(f"  ⚠ Erken durduruldu (maliyet sınırı ${COST_CAP_USD:.2f})")
+        print(f"  ⚠ Stopped early (cost cap ${COST_CAP_USD:.2f})")
 
     conn = sqlite3.connect(RESULTS_DB_PATH)
     metrics = conn.execute(
@@ -270,7 +273,7 @@ def _print_final_summary(summaries: list[RunSummary], stopped_early: bool) -> No
     print(f"  DB — agent_decisions    : {decisions}")
     print(f"  DB — experiment_conditions: {conditions}")
     print(
-        f"\n  (fiyatlandırma: ${_INPUT_COST_PER_M:.2f}/M input, "
+        f"\n  (pricing: ${_INPUT_COST_PER_M:.2f}/M input, "
         f"${_OUTPUT_COST_PER_M:.2f}/M output — Claude Haiku 4.5)"
     )
 
@@ -280,18 +283,18 @@ async def run_experiment(*, dry_run: bool = False) -> None:
 
     if dry_run:
         _print_plan(specs)
-        print("\n--plan modu: hiçbir koşu çalıştırılmadı.")
+        print("\n--plan mode: no runs executed.")
         return
 
     print("=" * 72)
-    print("BÖLÜM 12 — TAM DENEY BAŞLIYOR")
+    print("SECTION 12 — FULL EXPERIMENT STARTING")
     print("=" * 72)
     print(f"  experiment_id : {EXPERIMENT_ID}")
-    print(f"  toplam run    : {len(specs)}")
-    print(f"  maliyet sınırı: ${COST_CAP_USD:.2f}")
+    print(f"  total runs    : {len(specs)}")
+    print(f"  cost cap      : ${COST_CAP_USD:.2f}")
 
     _register_plan(specs)
-    print(f"\n  experiment_conditions tablosuna {len(specs)} satır yazıldı.")
+    print(f"\n  Wrote {len(specs)} rows to experiment_conditions.")
 
     summaries: list[RunSummary] = []
     total_cost = 0.0
@@ -320,8 +323,8 @@ async def run_experiment(*, dry_run: bool = False) -> None:
 
         if total_cost >= COST_CAP_USD:
             print(
-                f"\n⚠ Maliyet sınırı (${COST_CAP_USD:.2f}) aşıldı — "
-                f"koşu atlandı: {spec.run_id} ve sonrası."
+                f"\n⚠ Cost cap (${COST_CAP_USD:.2f}) exceeded — "
+                f"skipping run: {spec.run_id} and remaining."
             )
             stopped_early = True
             break
@@ -334,8 +337,8 @@ async def run_experiment(*, dry_run: bool = False) -> None:
 
         if total_cost > COST_CAP_USD:
             print(
-                f"\n⚠ Toplam maliyet ${total_cost:.4f} — "
-                f"${COST_CAP_USD:.2f} sınırını aştı. Kalan koşular durduruldu."
+                f"\n⚠ Total cost ${total_cost:.4f} — "
+                f"exceeded cap ${COST_CAP_USD:.2f}. Remaining conditions stopped."
             )
             stopped_early = True
             _print_condition_checkpoint(
@@ -366,18 +369,29 @@ async def run_experiment(*, dry_run: bool = False) -> None:
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Bölüm 12 tam faktöriyel deney (9 koşul × 5 tekrar = 45 run).",
+        description="Section 12 full factorial experiment (9 conditions × 5 reps = 45 runs).",
     )
     parser.add_argument(
         "--plan",
         action="store_true",
-        help="45 run planını yazdır ve çık (API çağrısı yok)",
+        help="Print 45-run plan and exit (no API calls)",
+    )
+    parser.add_argument(
+        "--english",
+        action="store_true",
+        help=(
+            "Use English symbolic prompts under experiment_id "
+            f"{EXPERIMENT_ID_EN} (does not touch locked {EXPERIMENT_ID_LOCKED})"
+        ),
     )
     return parser
 
 
 def main() -> None:
+    global EXPERIMENT_ID
     args = _build_parser().parse_args()
+    if args.english:
+        EXPERIMENT_ID = EXPERIMENT_ID_EN
     asyncio.run(run_experiment(dry_run=args.plan))
 
 

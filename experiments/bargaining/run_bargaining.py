@@ -7,10 +7,10 @@ full_experiment_v1 (not behavioral prompt_revision_v1 wording).
 Usage (repo root):
     python experiments/bargaining/run_bargaining.py --plan --micro-pilot
     python experiments/bargaining/run_bargaining.py --plan
-    python experiments/bargaining/run_bargaining.py --micro-pilot   # Faz B — API
-    python experiments/bargaining/run_bargaining.py                 # Faz C — API (after B)
+    python experiments/bargaining/run_bargaining.py --micro-pilot   # Phase B — API
+    python experiments/bargaining/run_bargaining.py                 # Phase C — API (after B)
 
-Gereksinimler (API koşuları): ANTHROPIC_API_KEY (.env). --plan API çağırmaz.
+Requirements (API runs): ANTHROPIC_API_KEY (.env). --plan does not call the API.
 """
 
 from __future__ import annotations
@@ -237,32 +237,32 @@ def _print_plan(
     )
 
     print("=" * 72)
-    print(f"BARGAINING — DENEY PLANI ({mode}, çalıştırılmadı)")
+    print(f"BARGAINING — EXPERIMENT PLAN ({mode}, dry run / not executed)")
     print("=" * 72)
     print(f"  experiment_id          : {experiment_id}")
     print(f"  game                   : ultimatum (2-player sequential)")
     print(f"  database               : {BARGAINING_DB_PATH}")
     print(f"  prompt style           : abstract/symbolic (full_experiment_v1)")
-    print(f"  toplam run             : {len(specs)}")
-    print(f"  koşul hücresi          : {n_cells}")
-    print(f"  tekrar/koşul (N)       : {REPLICATIONS}")
+    print(f"  total runs             : {len(specs)}")
+    print(f"  condition cells        : {n_cells}")
+    print(f"  replications/condition : {REPLICATIONS}")
     print(f"  max_rounds             : {MAX_ROUNDS}")
     print(f"  pie_size               : {PIE_SIZE:.0f}")
     print(f"  agents/round           : 2 (proposer → responder)")
-    print(f"  LLM calls/run (üst)    : {2 * MAX_ROUNDS}")
+    print(f"  LLM calls/run (upper)  : {2 * MAX_ROUNDS}")
     print(f"  model                  : {settings.ANTHROPIC_MODEL}")
     print(f"  temperature            : {settings.TEMPERATURE}")
-    print(f"  tahmini maliyet/run    : ~${ESTIMATED_COST_PER_RUN_USD:.2f}")
-    print(f"  tahmini toplam maliyet : ~${est_total:.2f}")
-    print(f"  maliyet güvenlik sınırı: ${cost_cap:.2f}")
+    print(f"  estimated cost/run     : ~${ESTIMATED_COST_PER_RUN_USD:.2f}")
+    print(f"  estimated total cost   : ~${est_total:.2f}")
+    print(f"  cost safety cap        : ${cost_cap:.2f}")
     if risk_micro_pilot:
         print(
-            "  filtre                 : proposer_coop=0.5, "
+            "  filter                 : proposer_coop=0.5, "
             "proposer_risk ∈ {0.2, 0.8}, responder=(0.5, 0.5)"
         )
     elif micro_pilot:
         print(
-            "  filtre                 : proposer_coop ∈ {0.2, 0.8}, "
+            "  filter                 : proposer_coop ∈ {0.2, 0.8}, "
             "proposer_risk=0.2, responder=(0.5, 0.5)"
         )
     else:
@@ -270,7 +270,7 @@ def _print_plan(
             "  grid                   : proposer_coop∈{0.2,0.5,0.8} × "
             "proposer_risk∈{0.2,0.8} × responder_coop∈{0.2,0.5,0.8} "
             f"(responder_risk={FIXED_RESPONDER_RISK_VALUE}) → "
-            f"{len(COOP_LEVELS) * len(PROPOSER_RISK_LEVELS) * len(COOP_LEVELS)} hücre"
+            f"{len(COOP_LEVELS) * len(PROPOSER_RISK_LEVELS) * len(COOP_LEVELS)} cells"
         )
 
     print(f"\n  {'#':>3}  {'run_id':<48} {'p_coop':>6} {'p_risk':>6} {'r_coop':>6}  rep")
@@ -283,7 +283,7 @@ def _print_plan(
         )
 
     print(
-        f"\n  (fiyatlandırma: ${_INPUT_COST_PER_M:.2f}/M input, "
+        f"\n  (pricing: ${_INPUT_COST_PER_M:.2f}/M input, "
         f"${_OUTPUT_COST_PER_M:.2f}/M output — Claude Haiku 4.5)"
     )
 
@@ -332,15 +332,15 @@ def _print_condition_checkpoint(
     cond_cost = sum(s.cost_usd for s in condition_summaries)
     spec = condition_specs[0]
     print(f"\n{'=' * 72}")
-    print(f"KOŞUL TAMAMLANDI — {condition_label}")
+    print(f"CONDITION COMPLETE — {condition_label}")
     print(f"{'=' * 72}")
     print(
         f"  traits                 : p_coop={spec.proposer_coop}, "
         f"p_risk={spec.proposer_risk}, r_coop={spec.responder_coop}"
     )
-    print(f"  bu koşul maliyeti      : ${cond_cost:.4f}")
-    print(f"  ilerleme               : {runs_completed}/{total_runs} run")
-    print(f"  kümülatif maliyet      : ${total_cost:.4f} / ${cost_cap:.2f}")
+    print(f"  cost this condition    : ${cond_cost:.4f}")
+    print(f"  progress               : {runs_completed}/{total_runs} runs")
+    print(f"  cumulative cost        : ${total_cost:.4f} / ${cost_cap:.2f}")
     for s in condition_summaries:
         print(
             f"    {s.run_id}: {s.rounds_played} round, "
@@ -356,13 +356,13 @@ def _print_final_summary(
     experiment_id: str,
 ) -> None:
     print(f"\n{'=' * 72}")
-    print(f"DENEY ÖZET — {experiment_id}")
+    print(f"EXPERIMENT SUMMARY — {experiment_id}")
     print(f"{'=' * 72}")
     total_cost = sum(s.cost_usd for s in summaries)
-    print(f"  tamamlanan run         : {len(summaries)}")
-    print(f"  toplam maliyet         : ${total_cost:.4f}")
+    print(f"  completed runs         : {len(summaries)}")
+    print(f"  total cost             : ${total_cost:.4f}")
     if stopped_early:
-        print(f"  ⚠ Erken durduruldu (maliyet sınırı ${cost_cap:.2f})")
+        print(f"  ⚠ Stopped early (cost cap ${cost_cap:.2f})")
 
     init_bargaining_db(BARGAINING_DB_PATH)
     with sqlite3.connect(BARGAINING_DB_PATH) as conn:
@@ -382,7 +382,7 @@ def _print_final_summary(
     print(f"  DB — bargaining_metrics : {metrics}")
     print(f"  DB — bargaining_conditions: {conditions}")
     print(
-        f"\n  (fiyatlandırma: ${_INPUT_COST_PER_M:.2f}/M input, "
+        f"\n  (pricing: ${_INPUT_COST_PER_M:.2f}/M input, "
         f"${_OUTPUT_COST_PER_M:.2f}/M output — Claude Haiku 4.5)"
     )
 
@@ -411,7 +411,7 @@ async def run_experiment(
             risk_micro_pilot=risk_micro_pilot,
             experiment_id=experiment_id,
         )
-        print("\n--plan modu: hiçbir koşu çalıştırılmadı (API çağrısı yok).")
+        print("\n--plan mode: no runs executed (no API calls).")
         return
 
     if risk_micro_pilot:
@@ -421,14 +421,14 @@ async def run_experiment(
     else:
         mode = "FULL"
     print("=" * 72)
-    print(f"BARGAINING — {mode} BAŞLIYOR")
+    print(f"BARGAINING — {mode} STARTING")
     print("=" * 72)
     print(f"  experiment_id : {experiment_id}")
-    print(f"  toplam run    : {len(specs)}")
-    print(f"  maliyet sınırı: ${cost_cap:.2f}")
+    print(f"  total runs    : {len(specs)}")
+    print(f"  cost cap      : ${cost_cap:.2f}")
 
     _register_plan(specs, experiment_id)
-    print(f"\n  bargaining_conditions tablosuna {len(specs)} satır yazıldı/güncellendi.")
+    print(f"\n  Wrote/updated {len(specs)} rows in bargaining_conditions.")
 
     summaries: list[RunSummary] = []
     total_cost = 0.0
@@ -458,8 +458,8 @@ async def run_experiment(
 
         if total_cost >= cost_cap:
             print(
-                f"\n⚠ Maliyet sınırı (${cost_cap:.2f}) aşıldı — "
-                f"koşu atlandı: {spec.run_id} ve sonrası."
+                f"\n⚠ Cost cap (${cost_cap:.2f}) exceeded — "
+                f"skipping run: {spec.run_id} and remaining."
             )
             stopped_early = True
             break
@@ -472,8 +472,8 @@ async def run_experiment(
 
         if total_cost > cost_cap:
             print(
-                f"\n⚠ Toplam maliyet ${total_cost:.4f} — "
-                f"${cost_cap:.2f} sınırını aştı. Kalan koşular durduruldu."
+                f"\n⚠ Total cost ${total_cost:.4f} — "
+                f"exceeded ${cost_cap:.2f} cap. Remaining conditions stopped."
             )
             stopped_early = True
             _print_condition_checkpoint(
@@ -514,14 +514,14 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--plan",
         action="store_true",
-        help="Run planını yazdır ve çık (API çağrısı yok)",
+        help="Print the run plan and exit (no API calls)",
     )
     parser.add_argument(
         "--micro-pilot",
         action="store_true",
         help=(
             "proposer_coop∈{0.2,0.8}, proposer_risk=0.2, "
-            "responder=(0.5,0.5), 5 rep/hücre = 10 run"
+            "responder=(0.5,0.5), 5 reps/cell = 10 runs"
         ),
     )
     parser.add_argument(
@@ -529,7 +529,7 @@ def _build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help=(
             "bargaining_risk_v1: proposer_coop=0.5, "
-            "proposer_risk∈{0.2,0.8}, responder=(0.5,0.5), 10 run"
+            "proposer_risk∈{0.2,0.8}, responder=(0.5,0.5), 10 runs"
         ),
     )
     return parser

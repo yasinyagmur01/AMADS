@@ -51,6 +51,7 @@ class BargainingProposerView(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
+    experiment_id: str = "bargaining_v1"
     own_trait: TraitProfile
     env_snapshot: EnvironmentSnapshot
     time_pressure: float = Field(ge=0.0, le=1.0)
@@ -65,6 +66,7 @@ class BargainingResponderView(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
+    experiment_id: str = "bargaining_v1"
     own_trait: TraitProfile
     env_snapshot: EnvironmentSnapshot
     time_pressure: float = Field(ge=0.0, le=1.0)

@@ -1,16 +1,16 @@
 """
-prompt_revision_v1 — aynı 3×3 faktöriyel tasarım, davranışsal cooperation prompt.
+prompt_revision_v1 — same 3×3 factorial design, behavioral cooperation prompt.
 
-full_experiment_v1 ile parametreler aynı (9 koşul × 5 rep, Haiku 4.5, TR,
-temperature=0.2, EXTRACTION_LIMIT_RATIO=0.12). Tek fark: decision_agent
-cooperation satırı davranışsal tanım kullanır (experiment_id = prompt_revision_v1).
+Same parameters as full_experiment_v1 (9 conditions × 5 reps, Haiku 4.5, TR,
+temperature=0.2, EXTRACTION_LIMIT_RATIO=0.12). Only difference: decision_agent
+cooperation line uses a behavioral definition (experiment_id = prompt_revision_v1).
 
-Kullanım (repo kökünden):
+Usage (from repo root):
     python experiments/cpr/run_prompt_revision.py --plan
-    python experiments/cpr/run_prompt_revision.py --micro-pilot   # 10 run, API
-    python experiments/cpr/run_prompt_revision.py                 # 45 run, API
+    python experiments/cpr/run_prompt_revision.py --micro-pilot   # 10 runs, API
+    python experiments/cpr/run_prompt_revision.py                 # 45 runs, API
 
-Gereksinimler: ANTHROPIC_API_KEY (.env). Mock yok.
+Requirements: ANTHROPIC_API_KEY (.env). No mock.
 """
 
 from __future__ import annotations
@@ -184,27 +184,27 @@ async def _run_single(spec: RunSpec) -> RunSummary:
 def _print_plan(specs: list[RunSpec], *, micro_pilot: bool) -> None:
     mode = "MICRO-PILOT" if micro_pilot else "FULL"
     print("=" * 72)
-    print(f"PROMPT REVISION v1 — DENEY PLANI ({mode}, çalıştırılmadı)")
+    print(f"PROMPT REVISION v1 — EXPERIMENT PLAN ({mode}, dry run / not executed)")
     print("=" * 72)
     print(f"  experiment_id          : {EXPERIMENT_ID}")
     print(f"  database               : {RESULTS_DB_PATH}")
     print(f"  prompt variant         : behavioral cooperation anchors")
-    print(f"  toplam run             : {len(specs)}")
-    print(f"  tekrar/koşul (N)       : {REPLICATIONS}")
+    print(f"  total runs             : {len(specs)}")
+    print(f"  replications/condition : {REPLICATIONS}")
     print(f"  max_rounds             : {MAX_ROUNDS}")
     print(f"  model                  : {settings.ANTHROPIC_MODEL}")
     print(f"  temperature            : {settings.TEMPERATURE}")
     print(f"  EXTRACTION_LIMIT_RATIO : {settings.EXTRACTION_LIMIT_RATIO}")
-    print(f"  agent sayısı           : {settings.AGENT_COUNT}")
+    print(f"  agent count            : {settings.AGENT_COUNT}")
     if micro_pilot:
         print(
-            f"  filtre                 : coop ∈ {{0.2, 0.8}}, risk=0.2 "
-            f"({len(specs)} run)"
+            f"  filter                 : coop ∈ {{0.2, 0.8}}, risk=0.2 "
+            f"({len(specs)} runs)"
         )
-        print(f"  maliyet güvenlik sınırı: ${MICRO_COST_CAP_USD:.2f}")
+        print(f"  cost safety cap        : ${MICRO_COST_CAP_USD:.2f}")
     else:
-        print(f"  koşul sayısı           : {len(TRAIT_LEVELS) ** 2} (3×3)")
-        print(f"  maliyet güvenlik sınırı: ${COST_CAP_USD:.2f}")
+        print(f"  conditions             : {len(TRAIT_LEVELS) ** 2} (3×3)")
+        print(f"  cost safety cap        : ${COST_CAP_USD:.2f}")
 
     print(f"\n  {'#':>3}  {'run_id':<32} {'coop':>5} {'risk':>5}  rep")
     print("  " + "-" * 58)
@@ -228,16 +228,16 @@ def _print_condition_checkpoint(
     cond_cost = sum(s.cost_usd for s in condition_summaries)
     spec = condition_specs[0]
     print(f"\n{'=' * 72}")
-    print(f"KOŞUL TAMAMLANDI — {condition_label}")
+    print(f"CONDITION COMPLETE — {condition_label}")
     print(f"{'=' * 72}")
     print(
         f"  trait                  : coop={spec.coop_value} ({spec.coop_level}), "
         f"risk={spec.risk_value} ({spec.risk_level})"
     )
-    print(f"  bu koşul maliyeti      : ${cond_cost:.4f}")
-    print(f"  ilerleme               : {runs_completed}/{total_runs} run")
-    print(f"  kümülatif maliyet      : ${total_cost:.4f} / ${cost_cap:.2f}")
-    print("  tekrar özeti:")
+    print(f"  cost this condition    : ${cond_cost:.4f}")
+    print(f"  progress               : {runs_completed}/{total_runs} runs")
+    print(f"  cumulative cost        : ${total_cost:.4f} / ${cost_cap:.2f}")
+    print("  replication summary:")
     for s in condition_summaries:
         print(
             f"    {s.run_id}: {s.rounds_played} round, "
@@ -252,13 +252,13 @@ def _print_final_summary(
     cost_cap: float,
 ) -> None:
     print(f"\n{'=' * 72}")
-    print(f"DENEY ÖZET — {EXPERIMENT_ID}")
+    print(f"EXPERIMENT SUMMARY — {EXPERIMENT_ID}")
     print(f"{'=' * 72}")
     total_cost = sum(s.cost_usd for s in summaries)
-    print(f"  tamamlanan run         : {len(summaries)}")
-    print(f"  toplam maliyet         : ${total_cost:.4f}")
+    print(f"  completed runs         : {len(summaries)}")
+    print(f"  total cost             : ${total_cost:.4f}")
     if stopped_early:
-        print(f"  ⚠ Erken durduruldu (maliyet sınırı ${cost_cap:.2f})")
+        print(f"  ⚠ Stopped early (cost cap ${cost_cap:.2f})")
 
     conn = sqlite3.connect(RESULTS_DB_PATH)
     metrics = conn.execute(
@@ -278,7 +278,7 @@ def _print_final_summary(
     print(f"  DB — agent_decisions    : {decisions}")
     print(f"  DB — experiment_conditions: {conditions}")
     print(
-        f"\n  (fiyatlandırma: ${_INPUT_COST_PER_M:.2f}/M input, "
+        f"\n  (pricing: ${_INPUT_COST_PER_M:.2f}/M input, "
         f"${_OUTPUT_COST_PER_M:.2f}/M output — Claude Haiku 4.5)"
     )
 
@@ -289,19 +289,19 @@ async def run_experiment(*, dry_run: bool = False, micro_pilot: bool = False) ->
 
     if dry_run:
         _print_plan(specs, micro_pilot=micro_pilot)
-        print("\n--plan modu: hiçbir koşu çalıştırılmadı.")
+        print("\n--plan mode: no runs executed.")
         return
 
     mode = "MICRO-PILOT" if micro_pilot else "FULL"
     print("=" * 72)
-    print(f"PROMPT REVISION v1 — {mode} BAŞLIYOR")
+    print(f"PROMPT REVISION v1 — {mode} STARTING")
     print("=" * 72)
     print(f"  experiment_id : {EXPERIMENT_ID}")
-    print(f"  toplam run    : {len(specs)}")
-    print(f"  maliyet sınırı: ${cost_cap:.2f}")
+    print(f"  total runs    : {len(specs)}")
+    print(f"  cost cap      : ${cost_cap:.2f}")
 
     _register_plan(specs)
-    print(f"\n  experiment_conditions tablosuna {len(specs)} satır yazıldı/güncellendi.")
+    print(f"\n  Wrote/updated {len(specs)} rows in experiment_conditions.")
 
     summaries: list[RunSummary] = []
     total_cost = 0.0
@@ -331,8 +331,8 @@ async def run_experiment(*, dry_run: bool = False, micro_pilot: bool = False) ->
 
         if total_cost >= cost_cap:
             print(
-                f"\n⚠ Maliyet sınırı (${cost_cap:.2f}) aşıldı — "
-                f"koşu atlandı: {spec.run_id} ve sonrası."
+                f"\n⚠ Cost cap (${cost_cap:.2f}) exceeded — "
+                f"skipping run: {spec.run_id} and remaining."
             )
             stopped_early = True
             break
@@ -345,8 +345,8 @@ async def run_experiment(*, dry_run: bool = False, micro_pilot: bool = False) ->
 
         if total_cost > cost_cap:
             print(
-                f"\n⚠ Toplam maliyet ${total_cost:.4f} — "
-                f"${cost_cap:.2f} sınırını aştı. Kalan koşular durduruldu."
+                f"\n⚠ Total cost ${total_cost:.4f} — "
+                f"exceeded ${cost_cap:.2f} cap. Remaining conditions stopped."
             )
             stopped_early = True
             _print_condition_checkpoint(
@@ -387,12 +387,12 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--plan",
         action="store_true",
-        help="Run planını yazdır ve çık (API çağrısı yok)",
+        help="Print the run plan and exit (no API calls)",
     )
     parser.add_argument(
         "--micro-pilot",
         action="store_true",
-        help="Sadece coop∈{0.2,0.8}, risk=0.2, 5 rep/hücre = 10 run",
+        help="Only coop∈{0.2,0.8}, risk=0.2, 5 reps/cell = 10 runs",
     )
     return parser
 

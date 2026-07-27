@@ -1,10 +1,10 @@
 """
-Kontrol grubu deneyi — LLM yok, deterministik control_agent.
+Control-group experiment — no LLM, deterministic control_agent.
 
-9 koşul (coop × risk ∈ {0.2, 0.5, 0.8}²) × 3 tekrar = 27 run.
-Formül: extraction = declared_max × (1 − cooperation_assigned); risk kullanılmaz.
+9 conditions (coop × risk ∈ {0.2, 0.5, 0.8}²) × 3 replications = 27 runs.
+Formula: extraction = declared_max × (1 − cooperation_assigned); risk is unused.
 
-Kullanım (repo kökünden):
+Usage (from repo root):
     python experiments/cpr/run_control_experiment.py --plan
     python experiments/cpr/run_control_experiment.py
 """
@@ -39,7 +39,7 @@ from referee.referee_node import run_referee
 try:
     from scipy.stats import pearsonr
 except ImportError as exc:
-    raise RuntimeError(f"scipy gerekli: pip install scipy ({exc})") from exc
+    raise RuntimeError(f"scipy required: pip install scipy ({exc})") from exc
 
 EXPERIMENT_ID = "control_group_v1"
 LLM_EXPERIMENT_ID = "full_experiment_v1"
@@ -146,17 +146,17 @@ def _build_graph():
 
 def _print_plan(specs: list[RunSpec]) -> None:
     print("=" * 72)
-    print("KONTROL GRUBU DENEY PLANI (çalıştırılmadı)")
+    print("CONTROL GROUP EXPERIMENT PLAN (dry run / not executed)")
     print("=" * 72)
     print(f"  experiment_id          : {EXPERIMENT_ID}")
     print(f"  database               : {RESULTS_DB_PATH}")
-    print(f"  koşul sayısı           : {len(TRAIT_LEVELS) ** 2} (3×3 kartezyen)")
-    print(f"  tekrar/koşul (N)       : {REPLICATIONS}")
-    print(f"  toplam run             : {len(specs)}")
+    print(f"  conditions             : {len(TRAIT_LEVELS) ** 2} (3×3 cartesian)")
+    print(f"  replications/condition : {REPLICATIONS}")
+    print(f"  total runs             : {len(specs)}")
     print(f"  max_rounds             : {MAX_ROUNDS}")
-    print(f"  agent                  : control_agent (deterministik, LLM yok)")
-    print(f"  formül                 : extraction = declared_max × (1 − coop)")
-    print(f"  maliyet                : $0.00")
+    print(f"  agent                  : control_agent (deterministic, no LLM)")
+    print(f"  formula                : extraction = declared_max × (1 − coop)")
+    print(f"  cost                   : $0.00")
     print()
 
 
@@ -177,13 +177,13 @@ async def _run_single(spec: RunSpec, app) -> RunSummary:
 
 def _print_correlation_comparison(control_r: float, control_p: float, n_runs: int) -> None:
     print(f"\n{'=' * 72}")
-    print("COOP → EXTRACTION_FRACTION KORELASYON KARŞILAŞTIRMASI")
-    print(f"(round penceresi: 0–{CORRELATION_MAX_ROUND}, extraction / declared_max)")
+    print("COOP → EXTRACTION_FRACTION CORRELATION COMPARISON")
+    print(f"(round window: 0–{CORRELATION_MAX_ROUND}, extraction / declared_max)")
     print("=" * 72)
-    print(f"  {'Grup':<22} {'experiment_id':<22} {'r':>8} {'p':>10} {'n':>5}")
+    print(f"  {'Group':<22} {'experiment_id':<22} {'r':>8} {'p':>10} {'n':>5}")
     print("  " + "-" * 70)
     print(
-        f"  {'Kontrol (kural tabanlı)':<22} {EXPERIMENT_ID:<22} "
+        f"  {'Control (rule-based)':<22} {EXPERIMENT_ID:<22} "
         f"{control_r:8.3f} {control_p:10.4f} {n_runs:5d}"
     )
     print(
@@ -193,11 +193,12 @@ def _print_correlation_comparison(control_r: float, control_p: float, n_runs: in
     print()
     if control_r < 0 and LLM_COOP_FRACTION_R > 0:
         print(
-            "  Kontrol grubu beklenen negatif yönü doğruluyor (coop↑ → fraction↓). "
-            "LLM grubu ters fidelity gösteriyor (coop↑ → fraction↑)."
+            "  Control group confirms the expected negative direction "
+            "(coop↑ → fraction↓). "
+            "LLM group shows reversed fidelity (coop↑ → fraction↑)."
         )
     elif control_r < 0:
-        print("  Kontrol grubu: coop↑ → fraction↓ (beklenen yön).")
+        print("  Control group: coop↑ → fraction↓ (expected direction).")
     print()
 
 
@@ -207,7 +208,7 @@ def _compute_control_correlation() -> tuple[float, float, int]:
             conn, EXPERIMENT_ID, max_round=CORRELATION_MAX_ROUND
         )
     if not rows:
-        raise RuntimeError(f"'{EXPERIMENT_ID}' için analiz verisi bulunamadı.")
+        raise RuntimeError(f"No analysis data found for '{EXPERIMENT_ID}'.")
     coop_x = [r.coop_assigned for r in rows]
     frac_y = [r.extraction_fraction for r in rows]
     r, p = pearsonr(coop_x, frac_y)
@@ -219,15 +220,15 @@ async def run_experiment(*, dry_run: bool = False) -> None:
 
     if dry_run:
         _print_plan(specs)
-        print("--plan modu: hiçbir koşu çalıştırılmadı.")
+        print("--plan mode: no runs executed.")
         return
 
     print("=" * 72)
-    print("KONTROL GRUBU DENEYİ BAŞLIYOR")
+    print("CONTROL GROUP EXPERIMENT STARTING")
     print("=" * 72)
     print(f"  experiment_id : {EXPERIMENT_ID}")
-    print(f"  toplam run    : {len(specs)}")
-    print(f"  maliyet       : $0.00 (LLM yok)")
+    print(f"  total runs    : {len(specs)}")
+    print(f"  cost          : $0.00 (no LLM)")
 
     rows = [
         (
@@ -241,7 +242,7 @@ async def run_experiment(*, dry_run: bool = False) -> None:
         for s in specs
     ]
     register_experiment_conditions(EXPERIMENT_ID, rows, RESULTS_DB_PATH)
-    print(f"\n  experiment_conditions tablosuna {len(specs)} satır yazıldı.")
+    print(f"\n  Wrote {len(specs)} rows to experiment_conditions.")
 
     app = _build_graph()
     summaries: list[RunSummary] = []
@@ -250,10 +251,10 @@ async def run_experiment(*, dry_run: bool = False) -> None:
         summaries.append(await _run_single(spec, app))
 
     print(f"\n{'=' * 72}")
-    print(f"DENEY ÖZET — {EXPERIMENT_ID}")
+    print(f"EXPERIMENT SUMMARY — {EXPERIMENT_ID}")
     print("=" * 72)
-    print(f"  tamamlanan run : {len(summaries)}")
-    print(f"  toplam maliyet : $0.00")
+    print(f"  completed runs : {len(summaries)}")
+    print(f"  total cost     : $0.00")
 
     with sqlite3.connect(RESULTS_DB_PATH) as conn:
         metrics = conn.execute(
@@ -273,12 +274,12 @@ async def run_experiment(*, dry_run: bool = False) -> None:
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Kontrol grubu deneyi (9 koşul × 3 tekrar, LLM yok).",
+        description="Control-group experiment (9 conditions × 3 replications, no LLM).",
     )
     parser.add_argument(
         "--plan",
         action="store_true",
-        help="27 run planını yazdır ve çık",
+        help="Print the 27-run plan and exit",
     )
     return parser
 

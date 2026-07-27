@@ -1,9 +1,11 @@
 # AMADS Project Rules
 
-- **Source of Truth:** All architecture decisions must follow `docs/AMADS_MASTER_REFERENCE.md`.
+- **Source of Truth:** All architecture decisions must follow `docs/AMADS_MASTER_REFERENCE_EN.md`. The Turkish file `docs/AMADS_MASTER_REFERENCE.md` is archived and not maintained.
 - **Referee Constraints:** The Referee node must NEVER call an LLM. It performs deterministic math only.
 - **State Management:** All state updates must go through defined Pydantic models in `core/state.py`.
 - **Read-Only Enforcement:** Agents must receive ONLY `AgentInputView`. They cannot access the full `SimulationState`.
 - **No Circular Evaluation:** LLMs are for decision making ONLY. Evaluation metrics are calculated in the Referee using pure code.
 - **Parallelism:** All agent decisions in a round are independent and parallel (fan-out pattern).
 - **Env:** Always check `core/config.py` for environment variables. Never hardcode keys.
+- **Locked data:** Never modify or re-run locked experiment_ids (`full_experiment_v1`, `control_group_v1`, `heterogeneous_v1`, `prompt_revision_v1`, `bargaining_v1`, `bargaining_risk_v1`). New work uses new experiment_ids.
+- **Prompt language:** Locked historical runs used Turkish prompts intentionally. New experiment_ids use English symbolic prompts.

@@ -140,27 +140,27 @@ def _print_plan(specs: list[RunSpec]) -> None:
     est_total = len(specs) * ESTIMATED_COST_PER_RUN_USD
 
     print("=" * 72)
-    print("HETEROGENEOUS_V1 — DENEY PLANI (çalıştırılmadı)")
+    print("HETEROGENEOUS_V1 — EXPERIMENT PLAN (dry run / not executed)")
     print("=" * 72)
     print(f"  experiment_id          : {EXPERIMENT_ID}")
     print(f"  database               : {RESULTS_DB_PATH}")
-    print(f"  koşul sayısı           : {n_conditions} (fixed population compositions)")
-    print(f"  tekrar/koşul (N)       : {REPLICATIONS}")
-    print(f"  toplam run             : {len(specs)}")
+    print(f"  conditions             : {n_conditions} (fixed population compositions)")
+    print(f"  replications/condition : {REPLICATIONS}")
+    print(f"  total runs             : {len(specs)}")
     print(f"  max_rounds             : {MAX_ROUNDS}")
     print(f"  model                  : {settings.ANTHROPIC_MODEL}")
     print(f"  temperature            : {settings.TEMPERATURE}")
     print(f"  EXTRACTION_LIMIT_RATIO : {settings.EXTRACTION_LIMIT_RATIO}")
     print(
-        f"  agent sayısı           : {settings.AGENT_COUNT} "
-        f"(gerçek LLM; trait'ler agent bazlı / heterogeneous)"
+        f"  agent count            : {settings.AGENT_COUNT} "
+        f"(real LLM; traits are per-agent / heterogeneous)"
     )
-    print(f"  maliyet güvenlik sınırı: ${COST_CAP_USD:.2f}")
+    print(f"  cost safety cap        : ${COST_CAP_USD:.2f}")
     print(
-        f"  tahmini maliyet        : ~${est_total:.2f} "
+        f"  estimated cost         : ~${est_total:.2f} "
         f"(~${ESTIMATED_COST_PER_RUN_USD:.2f}/run × {len(specs)})"
     )
-    print(f"  ilerleme raporu        : her {REPLICATIONS} run (koşul bitince)")
+    print(f"  progress report        : every {REPLICATIONS} runs (when condition ends)")
     print()
 
     print("Population compositions:")
@@ -176,7 +176,7 @@ def _print_plan(specs: list[RunSpec]) -> None:
                 f"      {agent_id}: coop={pair['coop']:.1f}, risk={pair['risk']:.1f}"
             )
 
-    print(f"\n{len(specs)} run listesi:")
+    print(f"\n{len(specs)}-run list:")
     print(f"  {'#':>3}  {'run_id':<18} {'condition':<10} {'label':<10}  rep")
     print("  " + "-" * 56)
     for i, spec in enumerate(specs, 1):
@@ -185,10 +185,10 @@ def _print_plan(specs: list[RunSpec]) -> None:
             f"{spec.condition_id:<10} {spec.condition.label:<10}  {spec.replication}"
         )
 
-    print("\nKoşul grupları (her biri 5 tekrar):")
+    print("\nCondition groups (5 replications each):")
     for i, cid in enumerate(CONDITION_ORDER, 1):
         cond = CONDITIONS[cid]
-        print(f"  Grup {i}: {cond.label} — {cond.name}")
+        print(f"  Group {i}: {cond.label} — {cond.name}")
 
 
 def _print_condition_checkpoint(
@@ -201,12 +201,12 @@ def _print_condition_checkpoint(
 ) -> None:
     cond_cost = sum(s.cost_usd for s in condition_summaries)
     print(f"\n{'=' * 72}")
-    print(f"KOŞUL TAMAMLANDI — {condition.label} ({condition.name})")
+    print(f"CONDITION COMPLETE — {condition.label} ({condition.name})")
     print(f"{'=' * 72}")
-    print(f"  bu koşul maliyeti      : ${cond_cost:.4f}")
-    print(f"  ilerleme               : {runs_completed}/{total_runs} run")
-    print(f"  kümülatif maliyet      : ${total_cost:.4f} / ${COST_CAP_USD:.2f}")
-    print("  tekrar özeti:")
+    print(f"  cost this condition    : ${cond_cost:.4f}")
+    print(f"  progress               : {runs_completed}/{total_runs} runs")
+    print(f"  cumulative cost        : ${total_cost:.4f} / ${COST_CAP_USD:.2f}")
+    print("  replication summary:")
     for s in condition_summaries:
         print(
             f"    {s.run_id}: {s.rounds_played} round, "
@@ -217,13 +217,13 @@ def _print_condition_checkpoint(
 
 def _print_final_summary(summaries: list[RunSummary], stopped_early: bool) -> None:
     print(f"\n{'=' * 72}")
-    print(f"DENEY ÖZET — {EXPERIMENT_ID}")
+    print(f"EXPERIMENT SUMMARY — {EXPERIMENT_ID}")
     print(f"{'=' * 72}")
     total_cost = sum(s.cost_usd for s in summaries)
-    print(f"  tamamlanan run         : {len(summaries)}")
-    print(f"  toplam maliyet         : ${total_cost:.4f}")
+    print(f"  completed runs         : {len(summaries)}")
+    print(f"  total cost             : ${total_cost:.4f}")
     if stopped_early:
-        print(f"  ⚠ Erken durduruldu (maliyet sınırı ${COST_CAP_USD:.2f})")
+        print(f"  ⚠ Stopped early (cost cap ${COST_CAP_USD:.2f})")
 
     conn = sqlite3.connect(RESULTS_DB_PATH)
     metrics = conn.execute(
@@ -256,7 +256,7 @@ def _print_final_summary(summaries: list[RunSummary], stopped_early: bool) -> No
     print(f"  DB — experiment_conditions      : {conditions}")
     print(f"  DB — heterogeneous_compositions : {compositions}")
     print(
-        f"\n  (fiyatlandırma: ${_INPUT_COST_PER_M:.2f}/M input, "
+        f"\n  (pricing: ${_INPUT_COST_PER_M:.2f}/M input, "
         f"${_OUTPUT_COST_PER_M:.2f}/M output — Claude Haiku 4.5)"
     )
 
@@ -266,20 +266,20 @@ async def run_experiment(*, dry_run: bool = False) -> None:
 
     if dry_run:
         _print_plan(specs)
-        print("\n--plan modu: hiçbir koşu çalıştırılmadı.")
+        print("\n--plan mode: no runs executed.")
         return
 
     print("=" * 72)
-    print("HETEROGENEOUS_V1 — DENEY BAŞLIYOR")
+    print("HETEROGENEOUS_V1 — EXPERIMENT STARTING")
     print("=" * 72)
     print(f"  experiment_id : {EXPERIMENT_ID}")
-    print(f"  toplam run    : {len(specs)}")
-    print(f"  maliyet sınırı: ${COST_CAP_USD:.2f}")
+    print(f"  total runs    : {len(specs)}")
+    print(f"  cost cap      : ${COST_CAP_USD:.2f}")
 
     _register_plan()
     print(
-        f"\n  experiment_conditions + heterogeneous_compositions yazıldı "
-        f"({len(specs)} run / {len(CONDITION_ORDER)} composition)."
+        f"\n  Wrote experiment_conditions + heterogeneous_compositions "
+        f"({len(specs)} runs / {len(CONDITION_ORDER)} compositions)."
     )
 
     summaries: list[RunSummary] = []
@@ -305,8 +305,8 @@ async def run_experiment(*, dry_run: bool = False) -> None:
 
         if total_cost >= COST_CAP_USD:
             print(
-                f"\n⚠ Maliyet sınırı (${COST_CAP_USD:.2f}) aşıldı — "
-                f"koşu atlandı: {spec.run_id} ve sonrası."
+                f"\n⚠ Cost cap (${COST_CAP_USD:.2f}) exceeded — "
+                f"skipping run: {spec.run_id} and remaining."
             )
             stopped_early = True
             break
@@ -318,8 +318,8 @@ async def run_experiment(*, dry_run: bool = False) -> None:
 
         if total_cost > COST_CAP_USD:
             print(
-                f"\n⚠ Toplam maliyet ${total_cost:.4f} — "
-                f"${COST_CAP_USD:.2f} sınırını aştı. Kalan koşular durduruldu."
+                f"\n⚠ Total cost ${total_cost:.4f} — "
+                f"exceeded ${COST_CAP_USD:.2f} cap. Remaining conditions stopped."
             )
             stopped_early = True
             _print_condition_checkpoint(
@@ -354,7 +354,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--plan",
         action="store_true",
-        help="20 run planını yazdır ve çık (API çağrısı yok)",
+        help="Print the 20-run plan and exit (no API calls)",
     )
     return parser
 

@@ -1,5 +1,7 @@
 # AMADS — Master Architecture Reference
-> This file is the single source of truth for all architectural decisions in the project. Reference it when writing documentation or prompting code in Cursor. If a decision is not documented here, it has not yet been made officially.
+> This file is the **sole** single source of truth for all architectural decisions in the project. Reference it when writing documentation or prompting code in Cursor. If a decision is not documented here, it has not yet been made officially.
+>
+> The Turkish file `AMADS_MASTER_REFERENCE.md` is **archived and not maintained**. Original locked CPR/bargaining findings used Turkish prompts intentionally; new experiment_ids use English symbolic prompts (see `docs/README.md`).
 
 ---
 

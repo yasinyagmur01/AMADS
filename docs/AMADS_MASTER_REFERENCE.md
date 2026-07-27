@@ -1,5 +1,7 @@
-# AMADS — Master Architecture Reference
-> Bu dosya, projenin tüm mimari kararlarının tek doğruluk kaynağıdır (single source of truth). Dokümantasyon yazarken veya Cursor'da kod yazdırırken buraya referans ver. Hiçbir karar burada yoksa, henüz resmi olarak verilmemiştir.
+# AMADS — Master Architecture Reference (ARCHIVED)
+> **ARCHIVED — not maintained.** The sole source of truth is now `docs/AMADS_MASTER_REFERENCE_EN.md`. This Turkish file is kept for historical reference only.
+>
+> Bu dosya tarihsel referans için saklanmaktadır; güncel mimari kararlar İngilizce SSOT dosyasındadır.
 
 ---
 
