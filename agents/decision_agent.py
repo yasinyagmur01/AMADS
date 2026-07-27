@@ -59,12 +59,34 @@ def _get_structured_llm():
     return _structured_llm
 
 
-def _build_system_prompt(agent_input: AgentInputView) -> str:
+# Cooperation wording by experiment_id.
+# full_experiment_v1 (and all other ids): abstract trait labels — locked baseline.
+# prompt_revision_v1: behavioral extraction anchors (concept-misalignment test).
+_COOPERATION_PROMPT_BY_EXPERIMENT: dict[str, str] = {
+    "prompt_revision_v1": (
+        "0=havuzdan mümkün olan maksimum miktarı çek, "
+        "1=havuzu korumak için mümkün olan minimum miktarı çek"
+    ),
+}
+_DEFAULT_COOPERATION_PROMPT = "0=tamamen bencil, 1=tamamen işbirlikçi"
+
+
+def _cooperation_prompt_clause(experiment_id: str) -> str:
+    return _COOPERATION_PROMPT_BY_EXPERIMENT.get(
+        experiment_id, _DEFAULT_COOPERATION_PROMPT
+    )
+
+
+def _build_system_prompt(
+    agent_input: AgentInputView,
+    experiment_id: str = "full_experiment_v1",
+) -> str:
     trait = agent_input.own_trait
+    coop_clause = _cooperation_prompt_clause(experiment_id)
     return (
         "Sen bir ortak kaynak havuzundan çekim yapan bir agentsın. "
         f"cooperation_assigned değerin {trait.cooperation_assigned:.2f} "
-        "(0=tamamen bencil, 1=tamamen işbirlikçi), "
+        f"({coop_clause}), "
         f"risk_tolerance_assigned değerin {trait.risk_tolerance_assigned:.2f} "
         "(0=çok temkinli, 1=çok risk alan). "
         "Kararını bu eğilimlere uygun ver, ama bu sayıları çıktında tekrar etme veya açıklama."
@@ -103,9 +125,12 @@ def _record_usage(raw_message) -> None:
     retry=retry_if_exception_type(RateLimitError),
     reraise=True,
 )
-async def _decide_with_anthropic(agent_input: AgentInputView) -> AgentDecision:
+async def _decide_with_anthropic(
+    agent_input: AgentInputView,
+    experiment_id: str = "full_experiment_v1",
+) -> AgentDecision:
     messages = [
-        ("system", _build_system_prompt(agent_input)),
+        ("system", _build_system_prompt(agent_input, experiment_id=experiment_id)),
         ("human", _build_human_prompt(agent_input)),
     ]
     result = await _get_structured_llm().ainvoke(messages)
@@ -133,8 +158,12 @@ def _agent_inputs(state: SimulationState) -> list[AgentInputView]:
 async def run_agent_fanout(state: SimulationState) -> dict:
     """Bölüm 8.1: 5 agent paralel fan-out, hepsi gerçek Anthropic LLM."""
     agent_inputs = _agent_inputs(state)
+    experiment_id = state.experiment_id
     decisions = await asyncio.gather(
-        *[_decide_with_anthropic(inp) for inp in agent_inputs]
+        *[
+            _decide_with_anthropic(inp, experiment_id=experiment_id)
+            for inp in agent_inputs
+        ]
     )
     return {"round_decisions": [*state.round_decisions, *decisions]}
 
@@ -143,9 +172,11 @@ async def run_hybrid_agent_fanout(state: SimulationState) -> dict:
     """Tek-agent testi: agent_1 → LLM; agent_2–5 → mock (Bölüm 9 adım 4)."""
     from agents.mock_agent import _mock_decision
 
+    experiment_id = state.experiment_id
+
     async def _decide(inp: AgentInputView) -> AgentDecision:
         if inp.own_trait.agent_id == REAL_AGENT_ID:
-            return await _decide_with_anthropic(inp)
+            return await _decide_with_anthropic(inp, experiment_id=experiment_id)
         return _mock_decision(inp, aggressive=False)
 
     agent_inputs = _agent_inputs(state)
