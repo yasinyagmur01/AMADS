@@ -2,15 +2,15 @@ import asyncio
 from dataclasses import dataclass
 
 from anthropic import RateLimitError
-from langchain_anthropic import ChatAnthropic
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 
 from core.config import settings
+from core.llm_providers import call_agent, resolve_llm_config
 from core.state import AgentDecision, AgentInputView, SimulationState
 
 REAL_AGENT_ID = "agent_1"  # hybrid single-agent test: agent_1 uses LLM
 
-# Claude Haiku 4.5 pricing (USD per 1M tokens)
+# Claude Haiku 4.5 pricing (USD per 1M tokens); Groq free-tier treated as $0
 _INPUT_COST_PER_M = 1.00
 _OUTPUT_COST_PER_M = 5.00
 
@@ -23,10 +23,6 @@ _LOCKED_TURKISH_EXPERIMENT_IDS = frozenset(
         "prompt_revision_v1",
     }
 )
-
-_PLACEHOLDER_KEYS = frozenset({"", "your_key_here"})
-
-_structured_llm = None
 
 
 @dataclass
@@ -53,30 +49,7 @@ def uses_english_prompts(experiment_id: str) -> bool:
     return experiment_id not in _LOCKED_TURKISH_EXPERIMENT_IDS
 
 
-def _require_anthropic_key() -> str:
-    key = settings.ANTHROPIC_API_KEY
-    if not key or key in _PLACEHOLDER_KEYS:
-        raise RuntimeError(
-            "ANTHROPIC_API_KEY is not set. Copy .env.example to .env and add your Anthropic API key."
-        )
-    return key
-
-
-def _get_structured_llm():
-    global _structured_llm
-    if _structured_llm is None:
-        llm = ChatAnthropic(
-            model=settings.ANTHROPIC_MODEL,
-            temperature=settings.TEMPERATURE,
-            api_key=_require_anthropic_key(),
-        )
-        _structured_llm = llm.with_structured_output(AgentDecision, include_raw=True)
-    return _structured_llm
-
-
 # Cooperation wording by experiment_id (Turkish locked baselines).
-# full_experiment_v1: abstract trait labels — locked baseline.
-# prompt_revision_v1: behavioral extraction anchors (concept-misalignment test).
 _COOPERATION_PROMPT_TR_BY_EXPERIMENT: dict[str, str] = {
     "prompt_revision_v1": (
         "0=havuzdan mümkün olan maksimum miktarı çek, "
@@ -159,6 +132,8 @@ def _build_human_prompt(
 
 
 def _record_usage(raw_message) -> None:
+    if raw_message is None:
+        return
     usage = getattr(raw_message, "usage_metadata", None) or {}
     inp = usage.get("input_tokens")
     out = usage.get("output_tokens")
@@ -167,16 +142,32 @@ def _record_usage(raw_message) -> None:
         api_usage = meta.get("usage") or {}
         inp = inp if inp is not None else api_usage.get("input_tokens", 0)
         out = out if out is not None else api_usage.get("output_tokens", 0)
+        # OpenAI-compatible usage keys
+        if not inp:
+            inp = api_usage.get("prompt_tokens", 0)
+        if not out:
+            out = api_usage.get("completion_tokens", 0)
     token_usage.add(int(inp or 0), int(out or 0))
+
+
+def _retry_exceptions() -> tuple:
+    exc: list[type[BaseException]] = [RateLimitError, ValueError]
+    try:
+        from openai import RateLimitError as OpenAIRateLimitError
+
+        exc.append(OpenAIRateLimitError)
+    except ImportError:
+        pass
+    return tuple(exc)
 
 
 @retry(
     stop=stop_after_attempt(3),
     wait=wait_exponential(multiplier=1, min=1, max=10),
-    retry=retry_if_exception_type(RateLimitError),
+    retry=retry_if_exception_type((RateLimitError, ValueError)),
     reraise=True,
 )
-async def _decide_with_anthropic(
+async def _decide(
     agent_input: AgentInputView,
     experiment_id: str = "full_experiment_v1",
 ) -> AgentDecision:
@@ -184,15 +175,22 @@ async def _decide_with_anthropic(
         ("system", _build_system_prompt(agent_input, experiment_id=experiment_id)),
         ("human", _build_human_prompt(agent_input, experiment_id=experiment_id)),
     ]
-    result = await _get_structured_llm().ainvoke(messages)
-    _record_usage(result["raw"])
-    decision = AgentDecision.model_validate(result["parsed"])
+    cfg = resolve_llm_config(experiment_id)
+    # Anthropic cost accounting only; Groq free tier reported as $0 by callers
+    result = await call_agent(messages, AgentDecision, experiment_id=experiment_id)
+    if cfg.provider == "anthropic":
+        _record_usage(result.raw)
+    decision = AgentDecision.model_validate(result.parsed)
     return decision.model_copy(
         update={
             "agent_id": agent_input.own_trait.agent_id,
             "round_number": agent_input.round_number,
         }
     )
+
+
+# Back-compat alias for analysis scripts that imported the old name
+_decide_with_anthropic = _decide
 
 
 def _agent_inputs(state: SimulationState) -> list[AgentInputView]:
@@ -207,14 +205,11 @@ def _agent_inputs(state: SimulationState) -> list[AgentInputView]:
 
 
 async def run_agent_fanout(state: SimulationState) -> dict:
-    """Section 8.1: 5-agent parallel fan-out, all real Anthropic LLM."""
+    """Section 8.1: 5-agent parallel fan-out via configured LLM provider."""
     agent_inputs = _agent_inputs(state)
     experiment_id = state.experiment_id
     decisions = await asyncio.gather(
-        *[
-            _decide_with_anthropic(inp, experiment_id=experiment_id)
-            for inp in agent_inputs
-        ]
+        *[_decide(inp, experiment_id=experiment_id) for inp in agent_inputs]
     )
     return {"round_decisions": [*state.round_decisions, *decisions]}
 
@@ -225,13 +220,13 @@ async def run_hybrid_agent_fanout(state: SimulationState) -> dict:
 
     experiment_id = state.experiment_id
 
-    async def _decide(inp: AgentInputView) -> AgentDecision:
+    async def _one(inp: AgentInputView) -> AgentDecision:
         if inp.own_trait.agent_id == REAL_AGENT_ID:
-            return await _decide_with_anthropic(inp, experiment_id=experiment_id)
+            return await _decide(inp, experiment_id=experiment_id)
         return _mock_decision(inp, aggressive=False)
 
     agent_inputs = _agent_inputs(state)
-    decisions = await asyncio.gather(*[_decide(inp) for inp in agent_inputs])
+    decisions = await asyncio.gather(*[_one(inp) for inp in agent_inputs])
     return {"round_decisions": [*state.round_decisions, *decisions]}
 
 

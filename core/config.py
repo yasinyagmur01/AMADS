@@ -12,10 +12,16 @@ load_dotenv(_ENV_FILE, override=True)
 class Settings(BaseSettings):
     # API Keys
     ANTHROPIC_API_KEY: Optional[str] = None
+    GROQ_API_KEY: Optional[str] = None
     LANGSMITH_API_KEY: Optional[str] = None
+
+    # Default provider for experiments not in EXPERIMENT_LLM_REGISTRY
+    LLM_PROVIDER: str = "anthropic"
 
     # Anthropic model (default for locked Haiku experiments)
     ANTHROPIC_MODEL: str = "claude-haiku-4-5-20251001"
+    # Groq model (OpenAI-compatible endpoint)
+    GROQ_MODEL: str = "llama-3.3-70b-versatile"
 
     # LangSmith Tracing
     LANGSMITH_TRACING: bool = True

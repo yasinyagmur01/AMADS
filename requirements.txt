@@ -1,5 +1,7 @@
 anthropic
 langchain-anthropic
+langchain-openai
+openai
 langgraph
 pydantic
 pydantic-settings
@@ -9,3 +11,4 @@ scikit-learn
 matplotlib
 statsmodels
 langsmith
+tenacity

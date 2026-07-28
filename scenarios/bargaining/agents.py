@@ -11,10 +11,9 @@ from dataclasses import dataclass
 from typing import Any
 
 from anthropic import RateLimitError
-from langchain_anthropic import ChatAnthropic
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 
-from core.config import settings
+from core.llm_providers import call_agent, resolve_llm_config
 from scenarios.bargaining.state import (
     BargainingProposerView,
     BargainingResponderView,
@@ -33,11 +32,6 @@ _LOCKED_TURKISH_EXPERIMENT_IDS = frozenset(
         "bargaining_risk_v1",
     }
 )
-
-_PLACEHOLDER_KEYS = frozenset({"", "your_key_here"})
-
-_proposer_llm = None
-_responder_llm = None
 
 
 @dataclass
@@ -69,40 +63,9 @@ def uses_english_prompts(experiment_id: str) -> bool:
     return experiment_id not in _LOCKED_TURKISH_EXPERIMENT_IDS
 
 
-def _require_anthropic_key() -> str:
-    key = settings.ANTHROPIC_API_KEY
-    if not key or key in _PLACEHOLDER_KEYS:
-        raise RuntimeError(
-            "ANTHROPIC_API_KEY is not set. Copy .env.example to .env and add your Anthropic API key."
-        )
-    return key
-
-
-def _get_proposer_llm():
-    global _proposer_llm
-    if _proposer_llm is None:
-        llm = ChatAnthropic(
-            model=settings.ANTHROPIC_MODEL,
-            temperature=settings.TEMPERATURE,
-            api_key=_require_anthropic_key(),
-        )
-        _proposer_llm = llm.with_structured_output(ProposerOffer, include_raw=True)
-    return _proposer_llm
-
-
-def _get_responder_llm():
-    global _responder_llm
-    if _responder_llm is None:
-        llm = ChatAnthropic(
-            model=settings.ANTHROPIC_MODEL,
-            temperature=settings.TEMPERATURE,
-            api_key=_require_anthropic_key(),
-        )
-        _responder_llm = llm.with_structured_output(ResponderDecision, include_raw=True)
-    return _responder_llm
-
-
 def _record_usage(raw_message) -> None:
+    if raw_message is None:
+        return
     usage = getattr(raw_message, "usage_metadata", None) or {}
     inp = usage.get("input_tokens")
     out = usage.get("output_tokens")
@@ -111,6 +74,10 @@ def _record_usage(raw_message) -> None:
         api_usage = meta.get("usage") or {}
         inp = inp if inp is not None else api_usage.get("input_tokens", 0)
         out = out if out is not None else api_usage.get("output_tokens", 0)
+        if not inp:
+            inp = api_usage.get("prompt_tokens", 0)
+        if not out:
+            out = api_usage.get("completion_tokens", 0)
     token_usage.add(int(inp or 0), int(out or 0))
 
 
@@ -264,53 +231,15 @@ def _truncate_justification(text: str, limit: int = 500) -> str:
     return text[: limit - 1] + "…"
 
 
-def _offer_from_structured(result: dict) -> ProposerOffer:
-    parsed = result.get("parsed")
-    if parsed is not None:
-        if isinstance(parsed, ProposerOffer):
-            return parsed.model_copy(
-                update={
-                    "justification": _truncate_justification(parsed.justification)
-                }
-            )
-        return ProposerOffer.model_validate(parsed)
-
-    raw = result.get("raw")
-    tool_calls = getattr(raw, "tool_calls", None) or []
-    if tool_calls:
-        args = dict(tool_calls[0].get("args") or {})
-        args["justification"] = _truncate_justification(
-            str(args.get("justification", ""))
-        )
-        return ProposerOffer.model_validate(args)
-
-    raise ValueError(
-        f"ProposerOffer parse failed: parsing_error={result.get('parsing_error')!r}"
+def _normalize_offer(offer: ProposerOffer) -> ProposerOffer:
+    return offer.model_copy(
+        update={"justification": _truncate_justification(offer.justification)}
     )
 
 
-def _decision_from_structured(result: dict) -> ResponderDecision:
-    parsed = result.get("parsed")
-    if parsed is not None:
-        if isinstance(parsed, ResponderDecision):
-            return parsed.model_copy(
-                update={
-                    "justification": _truncate_justification(parsed.justification)
-                }
-            )
-        return ResponderDecision.model_validate(parsed)
-
-    raw = result.get("raw")
-    tool_calls = getattr(raw, "tool_calls", None) or []
-    if tool_calls:
-        args = dict(tool_calls[0].get("args") or {})
-        args["justification"] = _truncate_justification(
-            str(args.get("justification", ""))
-        )
-        return ResponderDecision.model_validate(args)
-
-    raise ValueError(
-        f"ResponderDecision parse failed: parsing_error={result.get('parsing_error')!r}"
+def _normalize_decision(decision: ResponderDecision) -> ResponderDecision:
+    return decision.model_copy(
+        update={"justification": _truncate_justification(decision.justification)}
     )
 
 
@@ -325,9 +254,14 @@ async def _proposer_decide(view: BargainingProposerView) -> ProposerOffer:
         ("system", _build_proposer_system(view)),
         ("human", _build_proposer_human(view)),
     ]
-    result = await _get_proposer_llm().ainvoke(messages)
-    _record_usage(result["raw"])
-    return _offer_from_structured(result)
+    cfg = resolve_llm_config(view.experiment_id)
+    result = await call_agent(
+        messages, ProposerOffer, experiment_id=view.experiment_id
+    )
+    if cfg.provider == "anthropic":
+        _record_usage(result.raw)
+    offer = ProposerOffer.model_validate(result.parsed)
+    return _normalize_offer(offer)
 
 
 @retry(
@@ -341,9 +275,14 @@ async def _responder_decide(view: BargainingResponderView) -> ResponderDecision:
         ("system", _build_responder_system(view)),
         ("human", _build_responder_human(view)),
     ]
-    result = await _get_responder_llm().ainvoke(messages)
-    _record_usage(result["raw"])
-    return _decision_from_structured(result)
+    cfg = resolve_llm_config(view.experiment_id)
+    result = await call_agent(
+        messages, ResponderDecision, experiment_id=view.experiment_id
+    )
+    if cfg.provider == "anthropic":
+        _record_usage(result.raw)
+    decision = ResponderDecision.model_validate(result.parsed)
+    return _normalize_decision(decision)
 
 
 def _proposer_view(state: BargainingState) -> BargainingProposerView:
