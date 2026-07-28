@@ -29,8 +29,9 @@ Locked datasets must **never** be modified or re-run. All new work uses new `exp
 |---|---|---|---|---|---|
 | `full_experiment_en_v1` | CPR | Claude Haiku 4.5 (selectable) | English | 2026-07-28 | English prompt variant of main CPR design (not auto-run) |
 | `groq_smoke_test` | CPR / Bargaining smoke | Groq `llama-3.3-70b-versatile` | English | 2026-07-28 | Provider/model validation (structured tool-calling) |
-| `full_experiment_groq_v1` | CPR | Groq | English | TBD | Third-model CPR replication |
-| `bargaining_groq_v1` | Bargaining | Groq | English | TBD | Third-model bargaining coop pilot |
-| `bargaining_risk_groq_v1` | Bargaining | Groq | English | TBD | Third-model bargaining risk pilot |
+| `full_experiment_groq_v1_70b_partial` | CPR | Groq `llama-3.3-70b-versatile` | English | 2026-07-28 | Aborted mid-pilot (free-tier 100k TPD exhausted); 4 low-coop runs only |
+| `full_experiment_groq_v1` | CPR | Groq `llama-3.1-8b-instant` | English | 2026-07-28 | Coop micro-pilot 10 runs; inverse fidelity r=+0.760 (Haiku-like); no full grid |
+| `bargaining_groq_v1` | Bargaining | Groq `llama-3.1-8b-instant` | English | TBD | Third-model bargaining coop pilot |
+| `bargaining_risk_groq_v1` | Bargaining | Groq `llama-3.1-8b-instant` | English | TBD | Third-model bargaining risk pilot |
 
 **Groq note (Phase 2):** Groq was previously removed from architecture docs to avoid mixing providers within a run (confound risk), not because of a technical failure. Re-introduction uses **one provider per experiment_id**. `llama-3.3-70b-versatile` supports tool/function calling (not `json_schema`); AMADS uses `method="function_calling"` for Groq structured outputs.

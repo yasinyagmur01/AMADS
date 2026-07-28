@@ -124,7 +124,9 @@ def _build_proposer_system(view: BargainingProposerView) -> str:
             "(0=avoid rejection risk / safe low keep, "
             "1=accept rejection risk / high keep for self). "
             "Make your decision in line with these tendencies, but do not repeat "
-            "or explain these numbers in your output."
+            "or explain these numbers in your output. "
+            "Structured fields ONLY: keep_amount and justification — "
+            "do not invent extra fields."
         )
     return (
         "Sen bir pazarlık oyununda TEKLİF EDEN (Proposer) rolesindesin. "
@@ -181,7 +183,9 @@ def _build_responder_system(view: BargainingResponderView) -> str:
             "(0=avoid rejection risk / inclined to accept, "
             "1=accept rejection risk / demand high own share). "
             "Make your decision in line with these tendencies, but do not repeat "
-            "or explain these numbers in your output."
+            "or explain these numbers in your output. "
+            "Structured fields ONLY: accept and justification — "
+            "do not invent extra fields."
         )
     return (
         "Sen bir pazarlık oyununda YANITLAYAN (Responder) rolesindesin. "
@@ -243,10 +247,23 @@ def _normalize_decision(decision: ResponderDecision) -> ResponderDecision:
     )
 
 
+def _retry_exc() -> tuple:
+    exc: list[type[BaseException]] = [RateLimitError, ValueError]
+    try:
+        from openai import BadRequestError as OpenAIBadRequestError
+        from openai import RateLimitError as OpenAIRateLimitError
+
+        exc.append(OpenAIRateLimitError)
+        exc.append(OpenAIBadRequestError)
+    except ImportError:
+        pass
+    return tuple(exc)
+
+
 @retry(
-    stop=stop_after_attempt(3),
-    wait=wait_exponential(multiplier=1, min=1, max=10),
-    retry=retry_if_exception_type((RateLimitError, ValueError)),
+    stop=stop_after_attempt(8),
+    wait=wait_exponential(multiplier=4, min=5, max=420),
+    retry=retry_if_exception_type(_retry_exc()),
     reraise=True,
 )
 async def _proposer_decide(view: BargainingProposerView) -> ProposerOffer:
@@ -265,9 +282,9 @@ async def _proposer_decide(view: BargainingProposerView) -> ProposerOffer:
 
 
 @retry(
-    stop=stop_after_attempt(3),
-    wait=wait_exponential(multiplier=1, min=1, max=10),
-    retry=retry_if_exception_type((RateLimitError, ValueError)),
+    stop=stop_after_attempt(8),
+    wait=wait_exponential(multiplier=4, min=5, max=420),
+    retry=retry_if_exception_type(_retry_exc()),
     reraise=True,
 )
 async def _responder_decide(view: BargainingResponderView) -> ResponderDecision:

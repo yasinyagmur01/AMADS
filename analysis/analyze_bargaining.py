@@ -380,32 +380,39 @@ def run_risk_micro_analysis(rows: list[BargainingRunRow]) -> None:
     print()
 
 
-def run_analysis(*, bargaining_db: str, scope: str) -> None:
-    if scope == "risk-micro":
-        experiment_id = RISK_EXPERIMENT_ID
+def run_analysis(
+    *,
+    bargaining_db: str,
+    scope: str,
+    experiment_id: str | None = None,
+) -> None:
+    if experiment_id:
+        eid = experiment_id
+    elif scope == "risk-micro":
+        eid = RISK_EXPERIMENT_ID
     else:
-        experiment_id = BARGAINING_ID
+        eid = BARGAINING_ID
 
     path = Path(bargaining_db)
     print("=" * 72)
     print(f"BARGAINING ANALYSIS (scope={scope})")
     print("=" * 72)
-    print(f"  bargaining experiment : {experiment_id}")
+    print(f"  bargaining experiment : {eid}")
     print(f"  CPR reference         : {CPR_ID} (locked constants)")
     print(f"  database              : {bargaining_db}")
     print()
 
     if not path.exists():
-        print(f"Hata: bargaining DB yok: {path}", file=sys.stderr)
+        print(f"Error: bargaining DB missing: {path}", file=sys.stderr)
         raise SystemExit(1)
 
     with sqlite3.connect(path) as conn:
-        rows = fetch_bargaining_runs(conn, experiment_id, scope=scope)
-        checks = integrity_check(conn, experiment_id)
+        rows = fetch_bargaining_runs(conn, eid, scope=scope)
+        checks = integrity_check(conn, eid)
 
     if not rows:
         print(
-            f"Hata: '{experiment_id}' için metrik yok — koşu henüz çalışmamış olabilir.",
+            f"Error: no metrics for '{eid}' — run may not have completed.",
             file=sys.stderr,
         )
         raise SystemExit(1)
@@ -435,6 +442,11 @@ def _build_parser() -> argparse.ArgumentParser:
         help="micro | risk-micro | full",
     )
     parser.add_argument(
+        "--experiment-id",
+        default=None,
+        help="Override experiment_id (default: bargaining_v1 / bargaining_risk_v1)",
+    )
+    parser.add_argument(
         "--bargaining-db",
         default=BARGAINING_DB_PATH,
         help=f"Bargaining SQLite (default: {BARGAINING_DB_PATH})",
@@ -444,7 +456,11 @@ def _build_parser() -> argparse.ArgumentParser:
 
 def main() -> None:
     args = _build_parser().parse_args()
-    run_analysis(bargaining_db=args.bargaining_db, scope=args.scope)
+    run_analysis(
+        bargaining_db=args.bargaining_db,
+        scope=args.scope,
+        experiment_id=args.experiment_id,
+    )
 
 
 if __name__ == "__main__":

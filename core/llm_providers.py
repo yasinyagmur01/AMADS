@@ -16,20 +16,25 @@ from core.config import settings
 T = TypeVar("T", bound=BaseModel)
 
 GROQ_BASE_URL = "https://api.groq.com/openai/v1"
+# Quality-validated model (tool calling); free-tier TPD=100k — too tight for CPR grids.
 DEFAULT_GROQ_MODEL = "llama-3.3-70b-versatile"
+# Higher free-tier TPD (500k) for factorial / multi-round experiment volume.
+GROQ_VOLUME_MODEL = "llama-3.1-8b-instant"
 
 _PLACEHOLDER_KEYS = frozenset({"", "your_key_here"})
 
 # experiment_id → (provider, model). Unlisted IDs use Settings defaults (Anthropic).
 EXPERIMENT_LLM_REGISTRY: dict[str, tuple[str, str]] = {
     "groq_smoke_test": ("groq", DEFAULT_GROQ_MODEL),
-    "full_experiment_groq_v1": ("groq", DEFAULT_GROQ_MODEL),
-    "bargaining_groq_v1": ("groq", DEFAULT_GROQ_MODEL),
-    "bargaining_risk_groq_v1": ("groq", DEFAULT_GROQ_MODEL),
-    "bargaining_groq_v1_parallel_check": ("groq", DEFAULT_GROQ_MODEL),
-    "full_experiment_groq_v1_parallel_check": ("groq", DEFAULT_GROQ_MODEL),
-    "iterated_pd_groq_v1": ("groq", DEFAULT_GROQ_MODEL),
-    "stag_hunt_groq_v1": ("groq", DEFAULT_GROQ_MODEL),
+    # Partial llama-3.3-70b attempt (aborted: free-tier TPD exhausted) — do not reuse.
+    "full_experiment_groq_v1_70b_partial": ("groq", DEFAULT_GROQ_MODEL),
+    "full_experiment_groq_v1": ("groq", GROQ_VOLUME_MODEL),
+    "bargaining_groq_v1": ("groq", GROQ_VOLUME_MODEL),
+    "bargaining_risk_groq_v1": ("groq", GROQ_VOLUME_MODEL),
+    "bargaining_groq_v1_parallel_check": ("groq", GROQ_VOLUME_MODEL),
+    "full_experiment_groq_v1_parallel_check": ("groq", GROQ_VOLUME_MODEL),
+    "iterated_pd_groq_v1": ("groq", GROQ_VOLUME_MODEL),
+    "stag_hunt_groq_v1": ("groq", GROQ_VOLUME_MODEL),
 }
 
 
@@ -148,6 +153,24 @@ def _extract_parsed(result: dict, schema: Type[T]) -> T:
     )
 
 
+def _parse_failed_generation(err_body: object, schema: Type[T]) -> T:
+    """Recover schema fields when Groq rejects tool calls that include extra keys."""
+    import json
+    import re
+
+    text = str(err_body)
+    # Prefer JSON object inside failed_generation
+    m = re.search(r"\{.*\}", text, flags=re.DOTALL)
+    if not m:
+        raise ValueError(f"No JSON in failed_generation: {text[:200]}")
+    raw_obj = json.loads(m.group(0))
+    if not isinstance(raw_obj, dict):
+        raise ValueError("failed_generation JSON is not an object")
+    allowed = set(schema.model_fields.keys())
+    filtered = {k: v for k, v in raw_obj.items() if k in allowed}
+    return schema.model_validate(filtered)
+
+
 async def call_agent(
     messages: list[tuple[str, str]] | list[dict[str, str]],
     schema: Type[T],
@@ -165,7 +188,14 @@ async def call_agent(
         temperature=temperature,
     )
     structured = _build_structured_llm(schema, cfg)
-    result = await structured.ainvoke(messages)
+    try:
+        result = await structured.ainvoke(messages)
+    except Exception as exc:  # noqa: BLE001 — Groq tool_use_failed recovery
+        msg = str(exc)
+        if cfg.provider == "groq" and "failed_generation" in msg:
+            parsed = _parse_failed_generation(msg, schema)
+            return ParsedResponse(parsed=parsed, raw=None)
+        raise
     if not isinstance(result, dict):
         # Some backends return the model directly
         parsed = result if isinstance(result, schema) else schema.model_validate(result)

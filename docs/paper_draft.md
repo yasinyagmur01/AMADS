@@ -241,12 +241,25 @@ Researchers should treat every candidate trait—and every model–trait–promp
 
 ## 5.2 Limitations
 
-- **Models:** Primary data from one model (Haiku 4.5); cross-model evidence from one additional model (Sonnet 4.6) only.
-- **Scenario:** Single commons-dilemma formulation; generalization to bargaining or crisis scenarios is untested.
-- **Agent design:** Homogeneous trait assignment within each run (all five agents share the same profile); heterogeneous populations may differ.
-- **Language:** Main experiment used Turkish prompts; multilingual pilots were short-screen pilots, not full 45-run replications.
+- **Models:** Primary data from Haiku 4.5; cross-model evidence from Sonnet 4.6 and Groq `llama-3.1-8b-instant` (expansion micro-pilots, n=10 per trait axis). Full 45-run Groq factorial not run (micro-pilot signal sufficient).
+- **Scenarios:** CPR and bargaining tested (Haiku locked + Groq expansion); iterated PD and stag hunt added in expansion (Groq micro-pilots). Crisis scenarios remain untested.
+- **Agent design:** Homogeneous trait assignment within each run (all five agents share the same profile in CPR); heterogeneous populations may differ.
+- **Language:** Locked baselines used Turkish prompts; expansion uses English symbolic prompts for new `experiment_id`s (documented intentional variable).
 - **Power:** Cooperation score averages underpowered at *N* = 5/condition; round-0 fidelity metrics are primary inferential evidence.
 - **Shock analysis:** Post-shock risk operationalization deferred; round-0 findings are the locked primary result.
+- **Groq bargaining anomaly:** Groq bargaining coop micro-pilot showed 100% offer rejection (responder never accepted); keep_amount fidelity still computed but behavioral interpretation is degraded.
+
+## 5.2.1 Expansion cross-scenario synthesis (July 2026)
+
+See `docs/expansion_summary.md` and `python analysis/cross_scenario_synthesis.py`. Summary:
+
+| Scenario | Trait | Haiku | Sonnet | Groq-8b |
+|---|---|---|---|---|
+| CPR | cooperation | inverse (+0.46) | expected (−0.84) | inverse (+0.76) |
+| Bargaining | cooperation | expected (−0.98) | — | inverse (+0.83) |
+| Bargaining | risk | weak expected (+0.55) | — | expected (+0.79) |
+
+Structural-axis patterns across four scenarios are **qualitative/suggestive only** (n_scenarios too small for scenario-level inference). Model identity appears at least as important as scenario structure for cooperation direction.
 
 ## 5.3 Transparency: `experiment_conditions` Migration
 

@@ -150,7 +150,7 @@ def _record_usage(raw_message) -> None:
     token_usage.add(int(inp or 0), int(out or 0))
 
 
-def _retry_exceptions() -> tuple:
+def _retry_exc() -> tuple:
     exc: list[type[BaseException]] = [RateLimitError, ValueError]
     try:
         from openai import RateLimitError as OpenAIRateLimitError
@@ -162,9 +162,9 @@ def _retry_exceptions() -> tuple:
 
 
 @retry(
-    stop=stop_after_attempt(3),
-    wait=wait_exponential(multiplier=1, min=1, max=10),
-    retry=retry_if_exception_type((RateLimitError, ValueError)),
+    stop=stop_after_attempt(8),
+    wait=wait_exponential(multiplier=4, min=5, max=420),
+    retry=retry_if_exception_type(_retry_exc()),
     reraise=True,
 )
 async def _decide(
@@ -208,9 +208,15 @@ async def run_agent_fanout(state: SimulationState) -> dict:
     """Section 8.1: 5-agent parallel fan-out via configured LLM provider."""
     agent_inputs = _agent_inputs(state)
     experiment_id = state.experiment_id
-    decisions = await asyncio.gather(
-        *[_decide(inp, experiment_id=experiment_id) for inp in agent_inputs]
-    )
+    cfg = resolve_llm_config(experiment_id)
+    # Groq free tier ~30 RPM — limit concurrent agent calls
+    sem = asyncio.Semaphore(2 if cfg.provider == "groq" else 5)
+
+    async def _one(inp: AgentInputView) -> AgentDecision:
+        async with sem:
+            return await _decide(inp, experiment_id=experiment_id)
+
+    decisions = await asyncio.gather(*[_one(inp) for inp in agent_inputs])
     return {"round_decisions": [*state.round_decisions, *decisions]}
 
 
