@@ -1,0 +1,65 @@
+========================================================================
+BARGAINING — MICRO-PILOT STARTING
+========================================================================
+  experiment_id : bargaining_groq_v1
+  total runs    : 10
+  cost cap      : $999.00
+
+  Wrote/updated 10 rows in bargaining_conditions.
+
+  → pcoop_low_prisk_low_rcoop_medium_rep1  (p_coop=0.2, p_risk=0.2, r_coop=0.5, rep=1)
+
+  → pcoop_low_prisk_low_rcoop_medium_rep2  (p_coop=0.2, p_risk=0.2, r_coop=0.5, rep=2)
+
+  → pcoop_low_prisk_low_rcoop_medium_rep3  (p_coop=0.2, p_risk=0.2, r_coop=0.5, rep=3)
+
+  → pcoop_low_prisk_low_rcoop_medium_rep4  (p_coop=0.2, p_risk=0.2, r_coop=0.5, rep=4)
+
+  → pcoop_low_prisk_low_rcoop_medium_rep5  (p_coop=0.2, p_risk=0.2, r_coop=0.5, rep=5)
+
+========================================================================
+CONDITION COMPLETE — pcoop_low_prisk_low_rcoop_medium
+========================================================================
+  traits                 : p_coop=0.2, p_risk=0.2, r_coop=0.5
+  cost this condition    : $0.0000
+  progress               : 5/10 runs
+  cumulative cost        : $0.0000 / $999.00
+    pcoop_low_prisk_low_rcoop_medium_rep1: 15 round, keep_frac=0.551, accept=0.00, $0.0000
+    pcoop_low_prisk_low_rcoop_medium_rep2: 15 round, keep_frac=0.534, accept=0.00, $0.0000
+    pcoop_low_prisk_low_rcoop_medium_rep3: 15 round, keep_frac=0.645, accept=0.00, $0.0000
+    pcoop_low_prisk_low_rcoop_medium_rep4: 15 round, keep_frac=0.497, accept=0.00, $0.0000
+    pcoop_low_prisk_low_rcoop_medium_rep5: 15 round, keep_frac=0.753, accept=0.00, $0.0000
+
+  → pcoop_high_prisk_low_rcoop_medium_rep1  (p_coop=0.8, p_risk=0.2, r_coop=0.5, rep=1)
+
+  → pcoop_high_prisk_low_rcoop_medium_rep2  (p_coop=0.8, p_risk=0.2, r_coop=0.5, rep=2)
+
+  → pcoop_high_prisk_low_rcoop_medium_rep3  (p_coop=0.8, p_risk=0.2, r_coop=0.5, rep=3)
+
+  → pcoop_high_prisk_low_rcoop_medium_rep4  (p_coop=0.8, p_risk=0.2, r_coop=0.5, rep=4)
+
+  → pcoop_high_prisk_low_rcoop_medium_rep5  (p_coop=0.8, p_risk=0.2, r_coop=0.5, rep=5)
+
+========================================================================
+CONDITION COMPLETE — pcoop_high_prisk_low_rcoop_medium
+========================================================================
+  traits                 : p_coop=0.8, p_risk=0.2, r_coop=0.5
+  cost this condition    : $0.0000
+  progress               : 10/10 runs
+  cumulative cost        : $0.0000 / $999.00
+    pcoop_high_prisk_low_rcoop_medium_rep1: 15 round, keep_frac=0.805, accept=0.00, $0.0000
+    pcoop_high_prisk_low_rcoop_medium_rep2: 15 round, keep_frac=0.744, accept=0.00, $0.0000
+    pcoop_high_prisk_low_rcoop_medium_rep3: 15 round, keep_frac=0.854, accept=0.00, $0.0000
+    pcoop_high_prisk_low_rcoop_medium_rep4: 15 round, keep_frac=0.804, accept=0.00, $0.0000
+    pcoop_high_prisk_low_rcoop_medium_rep5: 15 round, keep_frac=0.831, accept=0.00, $0.0000
+
+========================================================================
+EXPERIMENT SUMMARY — bargaining_groq_v1
+========================================================================
+  completed runs         : 10
+  total cost             : $0.0000
+  DB — bargaining_rounds  : 150
+  DB — bargaining_metrics : 150
+  DB — bargaining_conditions: 10
+
+  (pricing: $1.00/M input, $5.00/M output — Claude Haiku 4.5)

@@ -31,6 +31,8 @@ EXPERIMENT_LLM_REGISTRY: dict[str, tuple[str, str]] = {
     "full_experiment_groq_v1": ("groq", GROQ_VOLUME_MODEL),
     "bargaining_groq_v1": ("groq", GROQ_VOLUME_MODEL),
     "bargaining_risk_groq_v1": ("groq", GROQ_VOLUME_MODEL),
+    # Haiku + English prompts (language isolation vs locked bargaining_v1 Turkish)
+    "bargaining_haiku_en_v1": ("anthropic", settings.ANTHROPIC_MODEL),
     "bargaining_groq_v1_parallel_check": ("groq", GROQ_VOLUME_MODEL),
     "full_experiment_groq_v1_parallel_check": ("groq", GROQ_VOLUME_MODEL),
     "iterated_pd_groq_v1": ("groq", GROQ_VOLUME_MODEL),

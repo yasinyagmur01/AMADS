@@ -1,0 +1,67 @@
+========================================================================
+FULL EXPERIMENT GROQ v1 — MICRO-PILOT STARTING
+========================================================================
+  experiment_id : full_experiment_groq_v1
+  total runs    : 10
+  cost cap      : $999.00
+
+  Wrote/updated 10 rows in experiment_conditions.
+
+  → cond_low_low_rep1  (coop=0.2, risk=0.2, rep=1)
+
+  → cond_low_low_rep2  (coop=0.2, risk=0.2, rep=2)
+
+  → cond_low_low_rep3  (coop=0.2, risk=0.2, rep=3)
+
+  → cond_low_low_rep4  (coop=0.2, risk=0.2, rep=4)
+
+  → cond_low_low_rep5  (coop=0.2, risk=0.2, rep=5)
+
+========================================================================
+CONDITION COMPLETE — cond_low_low
+========================================================================
+  trait                  : coop=0.2 (low), risk=0.2 (low)
+  cost this condition    : $0.0000
+  progress               : 5/10 runs
+  cumulative cost        : $0.0000 / $999.00
+  replication summary:
+    cond_low_low_rep1: 15 round, termination=completed, $0.0000
+    cond_low_low_rep2: 15 round, termination=completed, $0.0000
+    cond_low_low_rep3: 15 round, termination=completed, $0.0000
+    cond_low_low_rep4: 15 round, termination=completed, $0.0000
+    cond_low_low_rep5: 15 round, termination=completed, $0.0000
+
+  → cond_high_low_rep1  (coop=0.8, risk=0.2, rep=1)
+
+  → cond_high_low_rep2  (coop=0.8, risk=0.2, rep=2)
+
+  → cond_high_low_rep3  (coop=0.8, risk=0.2, rep=3)
+
+  → cond_high_low_rep4  (coop=0.8, risk=0.2, rep=4)
+
+  → cond_high_low_rep5  (coop=0.8, risk=0.2, rep=5)
+
+========================================================================
+CONDITION COMPLETE — cond_high_low
+========================================================================
+  trait                  : coop=0.8 (high), risk=0.2 (low)
+  cost this condition    : $0.0000
+  progress               : 10/10 runs
+  cumulative cost        : $0.0000 / $999.00
+  replication summary:
+    cond_high_low_rep1: 8 round, termination=collapse, $0.0000
+    cond_high_low_rep2: 8 round, termination=collapse, $0.0000
+    cond_high_low_rep3: 9 round, termination=collapse, $0.0000
+    cond_high_low_rep4: 8 round, termination=collapse, $0.0000
+    cond_high_low_rep5: 8 round, termination=collapse, $0.0000
+
+========================================================================
+EXPERIMENT SUMMARY — full_experiment_groq_v1
+========================================================================
+  completed runs         : 10
+  total cost             : $0.0000
+  DB — metrics_snapshots  : 116
+  DB — agent_decisions    : 580
+  DB — experiment_conditions: 10
+
+  (pricing: $1.00/M input, $5.00/M output — Claude Haiku 4.5)

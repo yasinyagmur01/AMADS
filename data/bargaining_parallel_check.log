@@ -1,0 +1,191 @@
+========================================================================
+BARGAINING — MICRO-PILOT STARTING
+========================================================================
+  experiment_id : bargaining_groq_v1_parallel_check
+  total runs    : 10
+  cost cap      : $999.00
+
+  Wrote/updated 10 rows in bargaining_conditions.
+  parallel concurrency : 3
+
+  → pcoop_low_prisk_low_rcoop_medium_rep1  (p_coop=0.2, p_risk=0.2, r_coop=0.5, rep=1)
+
+  → pcoop_low_prisk_low_rcoop_medium_rep2  (p_coop=0.2, p_risk=0.2, r_coop=0.5, rep=2)
+
+  → pcoop_low_prisk_low_rcoop_medium_rep3  (p_coop=0.2, p_risk=0.2, r_coop=0.5, rep=3)
+
+  → pcoop_low_prisk_low_rcoop_medium_rep4  (p_coop=0.2, p_risk=0.2, r_coop=0.5, rep=4)
+Traceback (most recent call last):
+  File "/home/yasin-yagmur01/Desktop/AMADS/experiments/bargaining/run_bargaining_groq.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/home/yasin-yagmur01/Desktop/AMADS/experiments/bargaining/run_bargaining_groq.py", line 607, in main
+    asyncio.run(
+    ~~~~~~~~~~~^
+        run_experiment(
+        ^^^^^^^^^^^^^^^
+    ...<6 lines>...
+        )
+        ^
+    )
+    ^
+  File "/home/yasin-yagmur01/miniconda3/lib/python3.14/asyncio/runners.py", line 205, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/yasin-yagmur01/miniconda3/lib/python3.14/asyncio/runners.py", line 128, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/yasin-yagmur01/miniconda3/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/yasin-yagmur01/Desktop/AMADS/experiments/bargaining/run_bargaining_groq.py", line 463, in run_experiment
+    summaries, wall = await run_specs_parallel(
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+        specs, _one, concurrency=concurrency
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/yasin-yagmur01/Desktop/AMADS/experiments/parallel.py", line 32, in run_specs_parallel
+    await asyncio.gather(*[_wrapped(i, s) for i, s in enumerate(specs)])
+  File "/home/yasin-yagmur01/Desktop/AMADS/experiments/parallel.py", line 29, in _wrapped
+    results[idx] = await run_one(spec, **kwargs)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yasin-yagmur01/Desktop/AMADS/experiments/bargaining/run_bargaining_groq.py", line 461, in _one
+    return await _run_single(spec, experiment_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yasin-yagmur01/Desktop/AMADS/experiments/bargaining/run_bargaining_groq.py", line 297, in _run_single
+    final_state = await app.ainvoke(_make_initial_state(spec, experiment_id))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yasin-yagmur01/miniconda3/lib/python3.14/site-packages/langgraph/pregel/main.py", line 4090, in ainvoke
+    async for chunk in self.astream(
+    ...<30 lines>...
+            chunks.append(chunk)
+  File "/home/yasin-yagmur01/miniconda3/lib/python3.14/site-packages/langgraph/pregel/main.py", line 3440, in astream
+    async for _ in runner.atick(
+    ...<16 lines>...
+            yield o
+  File "/home/yasin-yagmur01/miniconda3/lib/python3.14/site-packages/langgraph/pregel/_runner.py", line 396, in atick
+    await arun_with_retry(
+    ...<15 lines>...
+    )
+  File "/home/yasin-yagmur01/miniconda3/lib/python3.14/site-packages/langgraph/pregel/_retry.py", line 744, in arun_with_retry
+    return await task.proc.ainvoke(task.input, config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yasin-yagmur01/miniconda3/lib/python3.14/site-packages/langgraph/_internal/_runnable.py", line 733, in ainvoke
+    input = await asyncio.create_task(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+        step.ainvoke(input, config, **kwargs), context=context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/yasin-yagmur01/miniconda3/lib/python3.14/site-packages/langgraph/_internal/_runnable.py", line 501, in ainvoke
+    ret = await self.afunc(*args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yasin-yagmur01/Desktop/AMADS/scenarios/bargaining/agents.py", line 338, in proposer_agent
+    offer = await _proposer_decide(_proposer_view(state))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yasin-yagmur01/.local/lib/python3.14/site-packages/tenacity/asyncio/__init__.py", line 193, in async_wrapped
+    return await copy(fn, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yasin-yagmur01/.local/lib/python3.14/site-packages/tenacity/asyncio/__init__.py", line 112, in __call__
+    do = await self.iter(retry_state=retry_state)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yasin-yagmur01/.local/lib/python3.14/site-packages/tenacity/asyncio/__init__.py", line 157, in iter
+    result = await action(retry_state)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yasin-yagmur01/.local/lib/python3.14/site-packages/tenacity/_utils.py", line 111, in inner
+    return call(*args, **kwargs)
+  File "/home/yasin-yagmur01/.local/lib/python3.14/site-packages/tenacity/__init__.py", line 413, in exc_check
+    raise retry_exc.reraise()
+          ~~~~~~~~~~~~~~~~~^^
+  File "/home/yasin-yagmur01/.local/lib/python3.14/site-packages/tenacity/__init__.py", line 184, in reraise
+    raise self.last_attempt.result()
+          ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/yasin-yagmur01/miniconda3/lib/python3.14/concurrent/futures/_base.py", line 447, in result
+    return self.__get_result()
+           ~~~~~~~~~~~~~~~~~^^
+  File "/home/yasin-yagmur01/miniconda3/lib/python3.14/concurrent/futures/_base.py", line 396, in __get_result
+    raise self._exception
+  File "/home/yasin-yagmur01/.local/lib/python3.14/site-packages/tenacity/asyncio/__init__.py", line 116, in __call__
+    result = await fn(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yasin-yagmur01/Desktop/AMADS/scenarios/bargaining/agents.py", line 275, in _proposer_decide
+    result = await call_agent(
+             ^^^^^^^^^^^^^^^^^
+        messages, ProposerOffer, experiment_id=view.experiment_id
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/yasin-yagmur01/Desktop/AMADS/core/llm_providers.py", line 192, in call_agent
+    result = await structured.ainvoke(messages)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yasin-yagmur01/.local/lib/python3.14/site-packages/langchain_core/runnables/base.py", line 3484, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yasin-yagmur01/.local/lib/python3.14/site-packages/langchain_core/runnables/base.py", line 4220, in ainvoke
+    results = await asyncio.gather(
+              ^^^^^^^^^^^^^^^^^^^^^
+    ...<10 lines>...
+    )
+    ^
+  File "/home/yasin-yagmur01/.local/lib/python3.14/site-packages/langchain_core/runnables/base.py", line 4212, in _ainvoke_step
+    return await coro_with_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+        step.ainvoke(input_, child_config), context, create_task=True
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/yasin-yagmur01/.local/lib/python3.14/site-packages/langchain_core/runnables/base.py", line 6015, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/home/yasin-yagmur01/.local/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 499, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "/home/yasin-yagmur01/.local/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1860, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+        prompt_messages, stop=stop, callbacks=callbacks, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/yasin-yagmur01/.local/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1818, in agenerate
+    raise exceptions[0]
+  File "/home/yasin-yagmur01/.local/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 2151, in _agenerate_with_cache
+    result = await self._agenerate(
+             ^^^^^^^^^^^^^^^^^^^^^^
+        messages, stop=stop, run_manager=run_manager, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/yasin-yagmur01/.local/lib/python3.14/site-packages/langchain_openai/chat_models/base.py", line 2018, in _agenerate
+    _handle_openai_api_error(e)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/home/yasin-yagmur01/.local/lib/python3.14/site-packages/langchain_openai/chat_models/base.py", line 2011, in _agenerate
+    raw_response = await self.async_client.with_raw_response.create(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        **payload
+        ^^^^^^^^^
+    )
+    ^
+  File "/home/yasin-yagmur01/.local/lib/python3.14/site-packages/openai/_legacy_response.py", line 386, in wrapped
+    return cast(LegacyAPIResponse[R], await func(*args, **kwargs))
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yasin-yagmur01/.local/lib/python3.14/site-packages/openai/resources/chat/completions/completions.py", line 2883, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+    ...<55 lines>...
+    )
+    ^
+  File "/home/yasin-yagmur01/.local/lib/python3.14/site-packages/openai/_base_client.py", line 1977, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yasin-yagmur01/.local/lib/python3.14/site-packages/openai/_base_client.py", line 1762, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01kvkfcmkwer1t87pvv1z0e37q` service tier `on_demand` on tokens per day (TPD): Limit 500000, Used 499900, Requested 548. Please try again in 1m17.4144s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+During task with name 'proposer' and id 'a7d99574-991e-0cbb-6d8a-4c6901e10720'

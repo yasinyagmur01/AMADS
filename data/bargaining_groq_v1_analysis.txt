@@ -1,0 +1,44 @@
+========================================================================
+BARGAINING ANALYSIS (scope=micro)
+========================================================================
+  bargaining experiment : bargaining_groq_v1
+  CPR reference         : full_experiment_v1 (locked constants)
+  database              : data/bargaining_results.db
+
+  bargaining runs       : 10
+  rounds/run (mean)     : 15.0
+
+========================================================================
+INTEGRITY CHECK (keep_amount)
+========================================================================
+  rounds checked              : 150
+  keep_amount null            : 0
+  keep_amount outside [0,100] : 0
+  keep + offer ≠ 100          : 0
+  RESULT                      : OK
+
+| Metric                              | full_experiment_v1 (CPR) | bargaining_v1 (micro) |
+|--------------------------------------|---------------------------|------------------------|
+| coop=0.2 mean (kendine ayırdığı pay) | 5.040 (extraction)        | 59.627                 |
+| coop=0.8 mean (kendine ayırdığı pay) | 5.745 (extraction)        | 80.773                 |
+| mean_diff (0.2 − 0.8)                | -0.704                    | -21.147                |
+| Pearson r (coop→kendine_pay)         | +0.456                    | +0.832                 |
+| Yön                                   | INVERSE                   | INVERSE (positive r)   |
+
+Pearson r = +0.8324,  p = 0.002803,  n = 10
+Anlamlılık (α=0.05): evet (p=< 0.05)
+
+Run-level mean keep_amount:
+  run_id                                            coop   keep_X  accept  reject
+  --------------------------------------------------------------------------------
+  pcoop_low_prisk_low_rcoop_medium_rep1              0.2   55.133   0.000   1.000
+  pcoop_low_prisk_low_rcoop_medium_rep2              0.2   53.400   0.000   1.000
+  pcoop_low_prisk_low_rcoop_medium_rep3              0.2   64.533   0.000   1.000
+  pcoop_low_prisk_low_rcoop_medium_rep4              0.2   49.733   0.000   1.000
+  pcoop_low_prisk_low_rcoop_medium_rep5              0.2   75.333   0.000   1.000
+  pcoop_high_prisk_low_rcoop_medium_rep1             0.8   80.533   0.000   1.000
+  pcoop_high_prisk_low_rcoop_medium_rep2             0.8   74.400   0.000   1.000
+  pcoop_high_prisk_low_rcoop_medium_rep3             0.8   85.400   0.000   1.000
+  pcoop_high_prisk_low_rcoop_medium_rep4             0.8   80.400   0.000   1.000
+  pcoop_high_prisk_low_rcoop_medium_rep5             0.8   83.133   0.000   1.000
+

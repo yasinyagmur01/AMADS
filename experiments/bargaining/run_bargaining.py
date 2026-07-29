@@ -120,6 +120,7 @@ def build_run_plan(
     *,
     micro_pilot: bool = False,
     risk_micro_pilot: bool = False,
+    replications: int = REPLICATIONS,
 ) -> list[RunSpec]:
     if risk_micro_pilot:
         p_coop_levels = (RISK_MICRO_PROPOSER_COOP,)
@@ -136,7 +137,7 @@ def build_run_plan(
 
     specs: list[RunSpec] = []
     for p_coop, p_risk, r_coop in product(p_coop_levels, p_risk_levels, r_coop_levels):
-        for rep in range(1, REPLICATIONS + 1):
+        for rep in range(1, replications + 1):
             specs.append(
                 RunSpec(
                     run_id=_run_id(p_coop, p_risk, r_coop, rep),
@@ -223,6 +224,8 @@ def _print_plan(
     micro_pilot: bool,
     risk_micro_pilot: bool,
     experiment_id: str,
+    replications: int,
+    cost_cap: float,
 ) -> None:
     if risk_micro_pilot:
         mode = "RISK-MICRO-PILOT"
@@ -230,11 +233,8 @@ def _print_plan(
         mode = "MICRO-PILOT"
     else:
         mode = "FULL"
-    n_cells = len(specs) // REPLICATIONS
+    n_cells = len(specs) // replications if replications else len(specs)
     est_total = len(specs) * ESTIMATED_COST_PER_RUN_USD
-    cost_cap = (
-        MICRO_COST_CAP_USD if (micro_pilot or risk_micro_pilot) else COST_CAP_USD
-    )
 
     print("=" * 72)
     print(f"BARGAINING — EXPERIMENT PLAN ({mode}, dry run / not executed)")
@@ -245,7 +245,7 @@ def _print_plan(
     print(f"  prompt style           : abstract/symbolic (full_experiment_v1)")
     print(f"  total runs             : {len(specs)}")
     print(f"  condition cells        : {n_cells}")
-    print(f"  replications/condition : {REPLICATIONS}")
+    print(f"  replications/condition : {replications}")
     print(f"  max_rounds             : {MAX_ROUNDS}")
     print(f"  pie_size               : {PIE_SIZE:.0f}")
     print(f"  agents/round           : 2 (proposer → responder)")
@@ -392,17 +392,26 @@ async def run_experiment(
     dry_run: bool = False,
     micro_pilot: bool = False,
     risk_micro_pilot: bool = False,
+    experiment_id: str | None = None,
+    cost_cap_usd: float | None = None,
+    replications: int = REPLICATIONS,
 ) -> None:
     if micro_pilot and risk_micro_pilot:
         raise SystemExit("Use either --micro-pilot or --risk-micro-pilot, not both.")
 
-    experiment_id = RISK_EXPERIMENT_ID if risk_micro_pilot else EXPERIMENT_ID
+    if experiment_id is None:
+        experiment_id = RISK_EXPERIMENT_ID if risk_micro_pilot else EXPERIMENT_ID
     specs = build_run_plan(
-        micro_pilot=micro_pilot, risk_micro_pilot=risk_micro_pilot
+        micro_pilot=micro_pilot,
+        risk_micro_pilot=risk_micro_pilot,
+        replications=replications,
     )
-    cost_cap = (
-        MICRO_COST_CAP_USD if (micro_pilot or risk_micro_pilot) else COST_CAP_USD
-    )
+    if cost_cap_usd is not None:
+        cost_cap = cost_cap_usd
+    else:
+        cost_cap = (
+            MICRO_COST_CAP_USD if (micro_pilot or risk_micro_pilot) else COST_CAP_USD
+        )
 
     if dry_run:
         _print_plan(
@@ -410,6 +419,8 @@ async def run_experiment(
             micro_pilot=micro_pilot,
             risk_micro_pilot=risk_micro_pilot,
             experiment_id=experiment_id,
+            replications=replications,
+            cost_cap=cost_cap,
         )
         print("\n--plan mode: no runs executed (no API calls).")
         return
@@ -487,7 +498,7 @@ async def run_experiment(
             )
             break
 
-        if (i + 1) % REPLICATIONS == 0:
+        if (i + 1) % replications == 0:
             _print_condition_checkpoint(
                 condition_label=current_condition,
                 condition_specs=current_condition_specs,
@@ -532,6 +543,23 @@ def _build_parser() -> argparse.ArgumentParser:
             "proposer_risk∈{0.2,0.8}, responder=(0.5,0.5), 10 runs"
         ),
     )
+    parser.add_argument(
+        "--experiment-id",
+        default=None,
+        help="Override experiment_id (e.g. bargaining_haiku_en_v1)",
+    )
+    parser.add_argument(
+        "--cost-cap",
+        type=float,
+        default=None,
+        help="Override cost safety cap in USD (default: $1 micro / $3 full)",
+    )
+    parser.add_argument(
+        "--replications",
+        type=int,
+        default=REPLICATIONS,
+        help=f"Replications per condition cell (default: {REPLICATIONS})",
+    )
     return parser
 
 
@@ -542,6 +570,9 @@ def main() -> None:
             dry_run=args.plan,
             micro_pilot=args.micro_pilot,
             risk_micro_pilot=args.risk_micro_pilot,
+            experiment_id=args.experiment_id,
+            cost_cap_usd=args.cost_cap,
+            replications=args.replications,
         )
     )
 

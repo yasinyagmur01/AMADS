@@ -310,11 +310,27 @@ def _print_final_summary(
     print(f"  DB — ipd_summary       : {summary_rows}")
 
 
+def _completed_run_ids(experiment_id: str) -> set[str]:
+    init_ipd_db(IPD_DB_PATH)
+    with sqlite3.connect(IPD_DB_PATH) as conn:
+        rows = conn.execute(
+            """
+            SELECT run_id FROM ipd_rounds
+            WHERE experiment_id = ?
+            GROUP BY run_id
+            HAVING COUNT(*) >= ?
+            """,
+            (experiment_id, MAX_ROUNDS),
+        ).fetchall()
+    return {r[0] for r in rows}
+
+
 async def run_experiment(
     *,
     dry_run: bool = False,
     micro_pilot: bool = False,
     risk_micro_pilot: bool = False,
+    resume: bool = False,
 ) -> None:
     if micro_pilot and risk_micro_pilot:
         raise SystemExit("Use either --micro-pilot or --risk-micro-pilot, not both.")
@@ -349,6 +365,10 @@ async def run_experiment(
     _register_plan(specs, experiment_id)
     print(f"\n  Wrote/updated {len(specs)} rows in ipd_conditions.")
 
+    done = _completed_run_ids(experiment_id) if resume else set()
+    if done:
+        print(f"  resume: skipping {len(done)} completed run_id(s)")
+
     summaries: list[RunSummary] = []
     total_cost = 0.0
     stopped_early = False
@@ -362,15 +382,16 @@ async def run_experiment(
             current_condition = cond
             current_condition_specs = []
         if cond != current_condition:
-            _print_condition_checkpoint(
-                condition_label=current_condition,
-                condition_specs=current_condition_specs,
-                condition_summaries=condition_buffer,
-                runs_completed=len(summaries),
-                total_runs=len(specs),
-                total_cost=total_cost,
-                cost_cap=cost_cap,
-            )
+            if condition_buffer and current_condition_specs:
+                _print_condition_checkpoint(
+                    condition_label=current_condition,
+                    condition_specs=current_condition_specs,
+                    condition_summaries=condition_buffer,
+                    runs_completed=len(summaries),
+                    total_runs=len(specs),
+                    total_cost=total_cost,
+                    cost_cap=cost_cap,
+                )
             condition_buffer = []
             current_condition = cond
             current_condition_specs = []
@@ -382,6 +403,10 @@ async def run_experiment(
             )
             stopped_early = True
             break
+
+        if spec.run_id in done:
+            print(f"  skip (resume) {spec.run_id}")
+            continue
 
         current_condition_specs.append(spec)
         summary = await _run_single(spec, experiment_id)
@@ -402,6 +427,17 @@ async def run_experiment(
             condition_buffer = []
             current_condition_specs = []
             current_condition = None
+
+    if condition_buffer and current_condition_specs:
+        _print_condition_checkpoint(
+            condition_label=current_condition or "",
+            condition_specs=current_condition_specs,
+            condition_summaries=condition_buffer,
+            runs_completed=len(summaries),
+            total_runs=len(specs),
+            total_cost=total_cost,
+            cost_cap=cost_cap,
+        )
 
     _print_final_summary(summaries, stopped_early, cost_cap, experiment_id)
 
@@ -425,6 +461,11 @@ def _build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="coop=0.5, risk∈{0.2,0.8}, 5 reps/cell = 10 runs",
     )
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="Skip run_ids that already have MAX_ROUNDS rounds",
+    )
     return parser
 
 
@@ -435,6 +476,7 @@ def main() -> None:
             dry_run=args.plan,
             micro_pilot=args.micro_pilot,
             risk_micro_pilot=args.risk_micro_pilot,
+            resume=args.resume,
         )
     )
 

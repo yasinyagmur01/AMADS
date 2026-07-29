@@ -142,10 +142,21 @@ def _normalize_decision(decision: IPDDecision) -> IPDDecision:
     )
 
 
+def _retry_exc() -> tuple:
+    exc: list[type[BaseException]] = [RateLimitError, ValueError]
+    try:
+        from openai import RateLimitError as OpenAIRateLimitError
+
+        exc.append(OpenAIRateLimitError)
+    except ImportError:
+        pass
+    return tuple(exc)
+
+
 @retry(
-    stop=stop_after_attempt(3),
-    wait=wait_exponential(multiplier=1, min=1, max=10),
-    retry=retry_if_exception_type((RateLimitError, ValueError)),
+    stop=stop_after_attempt(8),
+    wait=wait_exponential(multiplier=2, min=2, max=60),
+    retry=retry_if_exception_type(_retry_exc()),
     reraise=True,
 )
 async def _decide(view: IPDAgentView) -> IPDDecision:
