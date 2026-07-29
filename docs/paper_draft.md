@@ -2,7 +2,7 @@
 
 # Abstract
 
-We built AMADS (Academic Multi-Agent Decision Simulation), a framework to test whether AI agents given a personality trait in their instructions actually behave according to that trait, using a shared-resource extraction game as the test scenario. We found that one trait worked as expected—higher assigned risk tolerance predicted more extraction—but a "cooperative" trait backfired: agents told to be more cooperative actually took more from the shared pool, not less. AMADS is a LangGraph commons-dilemma framework where LLMs output structured extraction decisions and a deterministic, LLM-free referee computes all outcomes—eliminating circular LLM-as-judge evaluation (LLM rates its own output). In `full_experiment_v1` (45 runs; 9 trait conditions × 5 replicates; Claude Haiku 4.5; Turkish prompts), `risk_tolerance_assigned` transfers reliably (*r* = +0.678, *p* < 0.0001), while `cooperation_assigned` exhibits inverse fidelity (*r* = +0.456, *p* = 0.0016; trait effect reversed): higher assigned cooperation predicts greater extraction. Trait-fidelity analysis (assigned-vs-observed correlation), blind k-means clustering, and a formula-based control agent provide convergent validity (independent confirmation). Eleven-language and eleven-trait pilot screens reveal no stable category rule for transfer; Sonnet 4.6 cross-model replication (*n* = 40) reverses the cooperation pattern (*r* ≈ −0.84) while weakening risk (*r* ≈ +0.15). Trait fidelity (trait-to-behavior match) is empirically idiosyncratic and model-specific—each trait–model–prompt combination requires validation before simulation use.
+We built AMADS (Academic Multi-Agent Decision Simulation), a framework to test whether AI agents given a personality trait in their instructions actually behave according to that trait, using a shared-resource extraction game as the test scenario. We found that one trait worked as expected—higher assigned risk tolerance predicted more extraction—but a "cooperative" trait backfired: agents told to be more cooperative actually took more from the shared pool, not less. AMADS is a LangGraph commons-dilemma framework where LLMs output structured extraction decisions and a deterministic, LLM-free referee computes all outcomes—eliminating circular LLM-as-judge evaluation (LLM rates its own output). In `full_experiment_v1` (45 runs; 9 trait conditions × 5 replicates; Claude Haiku 4.5; Turkish prompts), `risk_tolerance_assigned` transfers reliably (*r* = +0.678, *p* < 0.0001), while `cooperation_assigned` exhibits inverse fidelity (*r* = +0.456, *p* = 0.0016; trait effect reversed): higher assigned cooperation predicts greater extraction. Trait-fidelity analysis (assigned-vs-observed correlation), blind k-means clustering, and a formula-based control agent provide convergent validity (independent confirmation). Eleven-language and eleven-trait pilot screens reveal no stable category rule for transfer; Sonnet 4.6 cross-model replication (*n* = 40) reverses the cooperation pattern (*r* ≈ −0.84) while weakening risk (*r* ≈ +0.15). Trait fidelity (trait-to-behavior match) is empirically idiosyncratic and model-specific—each trait–model–prompt–scenario combination requires empirical validation before simulation use. An IPD micro-pilot further shows that game structure can suppress trait signal entirely via equilibrium ceiling effects, independent of model identity.
 
 ---
 
@@ -229,11 +229,34 @@ Sonnet marginal means (cooperation): low (0.2) ≈ 10.0 extraction vs. high (0.8
 
 Whether the apparent cooperation–risk "trade-off" (strong risk / weak-inverse cooperation on Haiku vs. the reverse on Sonnet) is systematic or coincidental **cannot be determined with *N* = 2 models**.
 
+## 4.4 Game Structure as a Moderator: IPD Micro-Pilot
+
+To test whether trait fidelity patterns observed in the commons dilemma generalize across game structures, we conducted a micro-pilot using an Iterated Prisoner's Dilemma (IPD) scenario (iterated_pd_groq_v1). Ten complete runs (120 rounds total; 12 rounds per run) were executed using a free-tier Groq-hosted model. Trait manipulation was limited to cooperation_assigned at two levels ({0.2, 0.8}), with five replicates per cell.
+
+**Key results:**
+
+| Metric | Value |
+|--------|-------|
+| Complete runs | 10 / 10 |
+| Total rounds | 120 |
+| Mean C-rate (cooperation = 0.2) | 0.983 |
+| Mean C-rate (cooperation = 0.8) | 1.000 |
+| Pearson r (cooperation → C-rate) | +0.333, p = 0.35 (n.s.) |
+| Data integrity violations | 0 |
+
+Both trait cells produced near-ceiling cooperation rates (C-rate > 0.98), and the between-cell difference yielded a non-significant Pearson r. This outcome is consistent with iterated game theory: in repeated Prisoner's Dilemma with no fixed endpoint known to players, mutual cooperation is the evolutionarily dominant equilibrium. The game's structural pressure toward cooperation suppresses trait-driven variance regardless of assigned cooperation level.
+
+This finding extends the scope of trait fidelity analysis: **game structure is a moderating variable**. In scenarios where one behavioral strategy is theoretically dominant, prompt-level trait assignment cannot produce measurable behavioral differentiation. Trait fidelity is therefore not only model-specific and prompt-specific (as shown in Sections 4.1–4.3), but also scenario-specific.
+
+**Scope note:** The IPD pilot used a different model provider (Groq) than the primary experiments (Anthropic). Direct model-to-model comparison is not warranted. The pilot's contribution is structural: it demonstrates that ceiling effects driven by game equilibrium can mask trait signals entirely, independent of model identity.
+
 ---
 
 # 5. Discussion
 
 Independent evidence supports the generality of this dissociation between LLM self-report and behavior. Dubedy (2026) found that GPT-4.1 agents assigned a 'Poor' socioeconomic persona reported elevated risk perception while simultaneously making smaller bets in a gambling task—a within-persona negative correlation (ρ = −0.410, p < 2.2×10⁻¹⁶) attributed to self-reported risk score and bet-size decisions being generated by different components of model response logic. This mirrors our cooperation concept misalignment: a trait label is verbally acknowledged but does not consistently govern the corresponding numeric decision. Separately, recent work on personality-conditioned risk-taking (arXiv:2503.04735) reports that trait-risk relationships established in one model generation fail to generalize consistently to other model versions, corroborating our finding that trait fidelity is model-specific rather than a stable property of the LLM paradigm.
+
+These findings carry direct implications for production multi-agent systems. Current industry practice distinguishes implicitly between two categories of agent specification: role-based traits (e.g., "you are a senior software engineer") and character-based traits (e.g., "you have cooperation = 0.8"). Role-based specification is widely deployed in production agentic workflows—systems such as AutoGen, CrewAI, and LangGraph-based pipelines routinely assign occupational or functional roles to specialist agents, and practitioner literature treats this as reliable (Liu et al., 2025; Agyn, 2026). Character-based trait specification, by contrast, is the condition our experiments target. Our results show that character traits—particularly abstract psychological constructs such as cooperation—are not faithfully transferred by prompt-level assignment, and that the direction and magnitude of any transfer is model-specific. To our knowledge, no prior empirical study has measured this failure mode using deterministic, code-computed behavioral endpoints in a commons-dilemma setting. Practitioners building agentic systems that rely on character-based behavioral shaping—including negotiation agents, simulation participants, or persona-driven user proxies—should treat prompt-level trait assignment as an empirical hypothesis, not a design guarantee.
 
 ## 5.1 Practical Recommendation
 
@@ -242,7 +265,7 @@ Researchers should treat every candidate trait—and every model–trait–promp
 ## 5.2 Limitations
 
 - **Models:** Primary data from Haiku 4.5; cross-model evidence from Sonnet 4.6 and Groq `llama-3.1-8b-instant` (expansion micro-pilots, n=10 per trait axis). Full 45-run Groq factorial not run (micro-pilot signal sufficient).
-- **Scenarios:** CPR and bargaining tested (Haiku locked + Groq expansion); iterated PD and stag hunt added in expansion (Groq micro-pilots). Crisis scenarios remain untested.
+- **Scenario:** Primary findings derive from a single commons-dilemma formulation. An IPD micro-pilot (Section 4.4) demonstrates that game structure moderates trait signal detectability—ceiling effects driven by Nash equilibrium dynamics suppressed cooperation variance entirely. Generalization to bargaining, negotiation, or crisis scenarios requires independent empirical validation.
 - **Agent design:** Homogeneous trait assignment within each run (all five agents share the same profile in CPR); heterogeneous populations may differ.
 - **Language:** Locked baselines used Turkish prompts; expansion uses English symbolic prompts for new `experiment_id`s (documented intentional variable).
 - **Power:** Cooperation score averages underpowered at *N* = 5/condition; round-0 fidelity metrics are primary inferential evidence.
@@ -289,6 +312,7 @@ We built AMADS to measure LLM agent behavior in commons dilemmas through determi
 - Dubedy, S. (2026). Persona-Conditioned Risk Behavior in Large Language Models: A Simulated Gambling Study with GPT-4.1. *arXiv:2603.15831*.
 - Hardin, G. (1968). The tragedy of the commons. *Science*, 162(3859), 1243–1248.
 - Hartley, J., Hamill, C., Seddon, D., Batra, D., Okhrati, R., & Khraishi, R. (2025). How Personality Traits Shape LLM Risk-Taking Behaviour. In *Findings of the Association for Computational Linguistics: ACL 2025* (pp. 21068–21092). Association for Computational Linguistics. https://doi.org/10.18653/v1/2025.findings-acl.1085
+- Liu, W., Qin, J., Huang, X., Zeng, X., Xi, Y., Lin, J., Wu, C., Wang, Y., Shang, L., Tang, R., Lian, D., Yu, Y., & Zhang, W. (2025). The Real Barrier to LLM Agent Usability Is Agentic ROI. arXiv:2505.17767.
 - Nockur, L., Pfattheicher, S., & Keller, J. (2023). From asymmetric to symmetric consumption opportunities: Extractions from common resources by privileged and underprivileged group members. *Group Processes & Intergroup Relations*, 26(8), 1819–1840. https://doi.org/10.1177/13684302221132722
 - Nguyen, D., Le, H., Do, K., Gupta, S., Venkatesh, S., & Tran, T. (2025). Navigating Social Dilemmas with LLM-based Agents via Consideration of Future Consequences: Extended Abstract. In *Proceedings of the 24th International Conference on Autonomous Agents and Multiagent Systems (AAMAS 2025)* (pp. 2693–2695). IFAAMAS.
 - Ostrom, E. (1990). *Governing the Commons: The Evolution of Institutions for Collective Action*. Cambridge University Press.

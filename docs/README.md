@@ -13,6 +13,7 @@ From the expansion onward, **all new experiment_ids use English** symbolic trait
 
 ## Other docs
 
-- [`paper_draft.md`](paper_draft.md) — manuscript draft
+- [`paper_draft.md`](paper_draft.md) — manuscript draft (includes §4.4 IPD micro-pilot: game structure as trait-signal moderator)
+- [`expansion_summary.md`](expansion_summary.md) — Groq / cross-scenario expansion deliverable
 - [`analysis_plan.md`](analysis_plan.md) — Sonnet cross-model prereg-lite
 - [`figures/`](figures/) — paper figures

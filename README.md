@@ -14,21 +14,27 @@ AMADS simulates multi-agent resource extraction games where LLM-powered agents m
 
 3. **No predictable category rule across 11 traits:** An 11-language pilot (`prompt_ab_multilang.py`) and extended trait-category probes found no stable linguistic or categorical rule that explains when traits transfer faithfully; inverse cooperation fidelity was strongest in Turkish but appears across multiple languages at varying magnitudes.
 
+4. **Game structure moderates trait signal (IPD):** An Iterated Prisoner's Dilemma micro-pilot (`iterated_pd_groq_v1`, 10 runs / 120 rounds on Groq) produced near-ceiling cooperation in both trait cells (C-rate ≈ 0.98–1.00; r = +0.333, n.s.). Equilibrium pressure can suppress prompt-level trait variance entirely—trait fidelity is scenario-specific as well as model- and prompt-specific. See `docs/paper_draft.md` §4.4.
+
 ## Project Structure
 
 ```
-core/                 # Shared state, config, SQLite persistence, CPR graph wiring
+core/                 # Shared state, config, SQLite persistence, CPR graph wiring, LLM providers
 agents/               # LLM decision agent, mock/control agents (CPR)
 referee/              # Deterministic CPR Referee node
 scenarios/bargaining/ # Ultimatum bargaining scenario (isolated from CPR)
+scenarios/iterated_pd/ # Iterated Prisoner's Dilemma agents + referee
+scenarios/stag_hunt/  # Stag Hunt coordination scenario
 analysis/             # Trait fidelity, clustering, synthesis, prompt A/B scripts
 experiments/cpr/      # CPR factorial / control / heterogeneous / prompt-revision runners
 experiments/bargaining/ # Bargaining experiment runner
+experiments/iterated_pd/ # IPD micro-pilot runner
+experiments/stag_hunt/   # Stag Hunt micro-pilot runner
 scripts/cpr/          # CPR condition seed scripts
 scripts/bargaining/   # Bargaining condition seed scripts
 tests/                # Unit tests (Referee metrics, no LLM)
 docs/                 # Master reference, paper draft, figures, analysis plans
-data/                 # Experiment CSV/MD outputs and SQLite databases (*.db gitignored)
+data/                 # Experiment CSV/MD/log outputs and SQLite databases (*.db gitignored)
 environment/          # Shock schedules and environmental events
 ```
 
