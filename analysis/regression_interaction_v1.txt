@@ -1,0 +1,80 @@
+Regression analysis for full_experiment_v1
+Model: extraction_fraction_round0 ~ cooperation_assigned + risk_tolerance_assigned + cooperation_assigned:risk_tolerance_assigned
+Source: data/amads_round0_summary.csv
+N = 45
+
+                                OLS Regression Results                                
+======================================================================================
+Dep. Variable:     extraction_fraction_round0   R-squared:                       0.799
+Model:                                    OLS   Adj. R-squared:                  0.784
+Method:                         Least Squares   F-statistic:                     54.16
+Date:                        Wed, 29 Jul 2026   Prob (F-statistic):           2.55e-14
+Time:                                03:53:56   Log-Likelihood:                 60.233
+No. Observations:                          45   AIC:                            -112.5
+Df Residuals:                              41   BIC:                            -105.2
+Df Model:                                   3                                         
+Covariance Type:                    nonrobust                                         
+================================================================================================================
+                                                   coef    std err          t      P>|t|      [0.025      0.975]
+----------------------------------------------------------------------------------------------------------------
+Intercept                                        0.1120      0.051      2.188      0.034       0.009       0.215
+cooperation_assigned                             0.6883      0.092      7.485      0.000       0.503       0.874
+risk_tolerance_assigned                          0.8165      0.092      8.879      0.000       0.631       1.002
+cooperation_assigned:risk_tolerance_assigned    -0.8500      0.165     -5.146      0.000      -1.184      -0.516
+==============================================================================
+Omnibus:                       14.318   Durbin-Watson:                   0.285
+Prob(Omnibus):                  0.001   Jarque-Bera (JB):               15.442
+Skew:                          -1.351   Prob(JB):                     0.000443
+Kurtosis:                       3.967   Cond. No.                         26.6
+==============================================================================
+
+Notes:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
+
+========================================================================
+COEFFICIENT REPORT (β, SE, p)
+========================================================================
+  cooperation_assigned:  β = 0.688333,  SE = 0.091958,  p = 3.43245e-09
+  risk_tolerance_assigned:  β = 0.816482,  SE = 0.091958,  p = 4.26542e-11
+  cooperation_assigned:risk_tolerance_assigned:  β = -0.850000,  SE = 0.165162,  p = 6.99378e-06
+  Intercept:  β = 0.112018
+  R-squared          = 0.798517
+  Adj. R-squared     = 0.783775
+  N                  = 45
+  Interaction significant (p < 0.05)?  YES  (p = 6.99378e-06)
+
+========================================================================
+INTERPRETATION
+========================================================================
+
+1. Is the interaction term (cooperation × risk) significant?
+   YES — β₃ = -0.850000, p = 6.99378e-06 (p < 0.05).
+
+2. Does the interaction change interpretation of main effects?
+   Simple slope of cooperation at risk = r:
+     ∂ŷ/∂coop = β₁ + β₃·r
+     risk=0.2: slope = 0.518333
+     risk=0.5: slope = 0.263333
+     risk=0.8: slope = 0.008333
+   Cooperation main effect remains POSITIVE (inverse fidelity) across all tested risk levels; interaction modulates magnitude, not direction.
+
+3. N/A (interaction is significant; additive-only claim not made).
+
+# INTERPRETATION COMMENT BLOCK
+#
+# ========================================================================
+# INTERPRETATION
+# ========================================================================
+#
+# 1. Is the interaction term (cooperation × risk) significant?
+#    YES — β₃ = -0.850000, p = 6.99378e-06 (p < 0.05).
+#
+# 2. Does the interaction change interpretation of main effects?
+#    Simple slope of cooperation at risk = r:
+#      ∂ŷ/∂coop = β₁ + β₃·r
+#      risk=0.2: slope = 0.518333
+#      risk=0.5: slope = 0.263333
+#      risk=0.8: slope = 0.008333
+#    Cooperation main effect remains POSITIVE (inverse fidelity) across all tested risk levels; interaction modulates magnitude, not direction.
+#
+# 3. N/A (interaction is significant; additive-only claim not made).

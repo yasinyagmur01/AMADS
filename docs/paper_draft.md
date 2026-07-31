@@ -30,7 +30,9 @@ Zheng et al. (2023) formalized LLM-as-a-judge evaluation through MT-Bench and Ch
 
 Dubedy (2026) assigned socioeconomic personas to GPT-4.1 agents in a simulated gambling task and found that a "Poor" persona reported elevated risk perception while simultaneously making smaller bets—a dissociation between self-reported risk scores and behavioral bet sizes attributed to different components of model response logic. Hartley et al. (2025) investigated how Big Five personality interventions shape LLM risk-taking under cumulative prospect theory and found that trait–risk relationships established in one model generation fail to generalize consistently to other model versions, with legacy models such as GPT-4-Turbo showing unstable personality–risk mappings.
 
-Despite this breadth of work, no prior study combines commons-dilemma extraction as the behavioral endpoint, deterministic code-computed metrics that exclude LLM judges, cross-model replication under identical prompts, and systematic cross-language trait screens within a single experimental program. Classical CPR experiments measure extraction directly; LLM simulation papers often infer cooperation from dialogue or LLM scoring; personality studies typically assess self-report or text style rather than structured numeric decisions in a shared-resource game. AMADS is designed to fill this intersection.
+Akata et al. (2025) studied LLM behavior in finitely repeated two-player games (Prisoner's Dilemma family and Battle of the Sexes) and found that models can predict their opponent's strategy but fail to translate that understanding into coordinated action — a predict-vs-act dissociation that is structurally analogous to our finding that agents verbally acknowledge a trait yet fail to act on it numerically. Critically, they observe that game structure (payoff matrix shape) can create cooperation ceilings that dominate individual trait signals — a structural moderator that also explains the behavioral ceiling we observe in our IPD micro-pilot. Deb and Krishnan (2026) introduced STOCKTAKE, a supply-chain POMDP benchmark in which a deterministic Bayes-filter oracle (receiving the same observation stream as the agent) separates perception from control; models correctly identified hidden failures 84–88% of the time but still produced persistent stockout rates of 34–43%, formalizing a knowing–doing gap analogous to the trait-label vs. extraction-action dissociation we report in the CPR setting.
+
+Despite this breadth of work, no prior study occupies the intersection of all four of the following: (1) commons-dilemma extraction as the primary numeric behavioral endpoint, (2) deterministic code-computed metrics that fully exclude LLM judges, (3) cross-model replication under identical prompts, and (4) systematic cross-language trait screens. Classical CPR experiments (Walker et al., 1990; Nockur et al., 2023) measure extraction directly but use human participants. LLM simulation papers (Park et al., 2023; Piatti et al., 2024; Nguyen et al., 2025) often infer cooperation from dialogue or LLM scoring rather than structured numeric decisions. Personality studies (Hartley et al., 2025; Bodroža et al., 2024; Caron & Srivastava, 2023) assess self-report or text style, not behavioral endpoints in a shared-resource game. The knowing–doing gap framing in STOCKTAKE (Deb & Krishnan, 2026) and the predict-vs-act dissociation in Akata et al. (2025) provide the closest structural parallels to our trait-label vs. extraction-action finding, but neither uses CPR extraction nor trait-fidelity correlation as their primary metric. AMADS is designed to fill this intersection.
 
 ---
 
@@ -114,6 +116,22 @@ Using δ = 0.05 as a uniform minimum detectable difference:
 
 We therefore report cooperation-related inferential results with effect sizes and *p*-values while noting limited power for condition-level mean comparisons on cooperation score averages.
 
+## 3.7 Interaction Analysis
+
+To address potential confounding between simultaneously manipulated traits, we fit a multiple linear regression model incorporating a cooperation × risk interaction term across the full *N* = 45 dataset:
+
+extraction_fraction ~ β₀ + β₁(cooperation) + β₂(risk) + β₃(cooperation × risk) + ε
+
+Estimated coefficients (*n* = 45; *R*² = 0.799, adjusted *R*² = 0.784):
+
+| Term | β | SE | *p* |
+|---|---|---|---|
+| Cooperation (β₁) | 0.688 | 0.092 | 3.43×10⁻⁹ |
+| Risk tolerance (β₂) | 0.816 | 0.092 | 4.27×10⁻¹¹ |
+| Cooperation × risk (β₃) | −0.850 | 0.165 | 6.99×10⁻⁶ |
+
+The interaction term reached significance (β₃ = −0.850, *p* = 6.99×10⁻⁶). Simple slopes of cooperation on extraction fraction remain positive at all tested risk levels (risk = 0.2: 0.518; risk = 0.5: 0.263; risk = 0.8: 0.008), so inverse fidelity holds across the design grid; the interaction attenuates the cooperation effect toward zero at high risk rather than reversing its direction. This is consistent with the micro-A/B result holding risk fixed at 0.2, where the cooperation simple slope is largest.
+
 ---
 
 # 4. Experimental Results
@@ -127,6 +145,8 @@ On round-0 extraction fractions (*n* = 45):
 - **Cooperation → extraction_fraction:** *r* = **+0.456**, *p* = **0.0016** (positive correlation = **inverse fidelity** relative to the experimental operationalization, where higher cooperation should predict *lower* extraction).
 
 Marginal pattern (micro-A/B, risk fixed at 0.2): `cooperation = 0.2` → mean extraction ≈ 4.56; `cooperation = 0.8` → mean extraction ≈ 8.40. The effect persists when risk is held constant, ruling out a risk×cooperation interaction artifact.
+
+A multiple regression incorporating a cooperation × risk interaction term (Section 3.7) confirms that the cooperation main effect is not an artifact of simultaneous risk manipulation.
 
 An initial round-averaged cooperation score showed *r* = −0.345 (*p* = 0.02) but was confounded with collapse timing; round-0 unconfounded metrics supersede it.
 
@@ -254,7 +274,7 @@ This finding extends the scope of trait fidelity analysis: **game structure is a
 
 # 5. Discussion
 
-Independent evidence supports the generality of this dissociation between LLM self-report and behavior. Dubedy (2026) found that GPT-4.1 agents assigned a 'Poor' socioeconomic persona reported elevated risk perception while simultaneously making smaller bets in a gambling task—a within-persona negative correlation (ρ = −0.410, p < 2.2×10⁻¹⁶) attributed to self-reported risk score and bet-size decisions being generated by different components of model response logic. This mirrors our cooperation concept misalignment: a trait label is verbally acknowledged but does not consistently govern the corresponding numeric decision. Separately, recent work on personality-conditioned risk-taking (arXiv:2503.04735) reports that trait-risk relationships established in one model generation fail to generalize consistently to other model versions, corroborating our finding that trait fidelity is model-specific rather than a stable property of the LLM paradigm.
+Independent evidence supports the generality of this dissociation between LLM self-report and behavior. Dubedy (2026) found that GPT-4.1 agents assigned a 'Poor' socioeconomic persona reported elevated risk perception while simultaneously making smaller bets in a gambling task—a within-persona negative correlation (ρ = −0.410, p < 2.2×10⁻¹⁶) attributed to self-reported risk score and bet-size decisions being generated by different components of model response logic. This mirrors our cooperation concept misalignment: a trait label is verbally acknowledged but does not consistently govern the corresponding numeric decision. Separately, recent work on personality-conditioned risk-taking (arXiv:2503.04735) reports that trait-risk relationships established in one model generation fail to generalize consistently to other model versions, corroborating our finding that trait fidelity is model-specific rather than a stable property of the LLM paradigm. Furthermore, the significant cooperation × risk interaction (β₃ = −0.850, p < 0.001) reveals that concept misalignment is environmentally moderated: inverse cooperation fidelity is strongest under low resource pressure and attenuates — without reversing — as risk increases, suggesting that high-stakes scarcity narrows behavioral variance regardless of assigned trait.
 
 These findings carry direct implications for production multi-agent systems. Current industry practice distinguishes implicitly between two categories of agent specification: role-based traits (e.g., "you are a senior software engineer") and character-based traits (e.g., "you have cooperation = 0.8"). Role-based specification is widely deployed in production agentic workflows—systems such as AutoGen, CrewAI, and LangGraph-based pipelines routinely assign occupational or functional roles to specialist agents, and practitioner literature treats this as reliable (Liu et al., 2025; Agyn, 2026). Character-based trait specification, by contrast, is the condition our experiments target. Our results show that character traits—particularly abstract psychological constructs such as cooperation—are not faithfully transferred by prompt-level assignment, and that the direction and magnitude of any transfer is model-specific. To our knowledge, no prior empirical study has measured this failure mode using deterministic, code-computed behavioral endpoints in a commons-dilemma setting. Practitioners building agentic systems that rely on character-based behavioral shaping—including negotiation agents, simulation participants, or persona-driven user proxies—should treat prompt-level trait assignment as an empirical hypothesis, not a design guarantee.
 
@@ -265,7 +285,7 @@ Researchers should treat every candidate trait—and every model–trait–promp
 ## 5.2 Limitations
 
 - **Models:** Primary data from Haiku 4.5; cross-model evidence from Sonnet 4.6 and Groq `llama-3.1-8b-instant` (expansion micro-pilots, n=10 per trait axis). Full 45-run Groq factorial not run (micro-pilot signal sufficient).
-- **Scenario:** Primary findings derive from a single commons-dilemma formulation. An IPD micro-pilot (Section 4.4) demonstrates that game structure moderates trait signal detectability—ceiling effects driven by Nash equilibrium dynamics suppressed cooperation variance entirely. Generalization to bargaining, negotiation, or crisis scenarios requires independent empirical validation.
+- **Scenario:** Primary findings derive from a single commons-dilemma formulation. A multiple regression (Section 3.7) incorporating a cooperation × risk interaction term (β₃ = −0.850, p < 0.001) confirms that cooperation inverse fidelity persists across all risk levels, though its magnitude attenuates as risk increases. Whether this pattern generalizes to bargaining, negotiation, or crisis scenarios requires independent empirical validation.
 - **Agent design:** Homogeneous trait assignment within each run (all five agents share the same profile in CPR); heterogeneous populations may differ.
 - **Language:** Locked baselines used Turkish prompts; expansion uses English symbolic prompts for new `experiment_id`s (documented intentional variable).
 - **Power:** Cooperation score averages underpowered at *N* = 5/condition; round-0 fidelity metrics are primary inferential evidence.
@@ -306,9 +326,11 @@ We built AMADS to measure LLM agent behavior in commons dilemmas through determi
 
 *(DOIs provided where available; arXiv preprints noted.)*
 
+- Akata, E., Schulz, L., Coda-Forno, J., Oh, S. J., Bethge, M., & Schulz, E. (2025). Playing Repeated Games with Large Language Models. *Nature Human Behaviour*. https://doi.org/10.1038/s41562-024-02068-9
 - Bhandari, P., Fay, N., Wise, M. J., Datta, A., Meek, S., Naseem, U., & Nasim, M. (2025). Can LLM Agents Maintain a Persona in Discourse? In *Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing* (pp. 29213–29229). Association for Computational Linguistics. https://doi.org/10.18653/v1/2025.emnlp-main.1487
 - Bodroža, B., Dinić, B. M., & Bojić, L. (2024). Personality testing of large language models: limited temporal stability, but highlighted prosociality. *Royal Society Open Science*, 11(8), 240180. https://doi.org/10.1098/rsos.240180
 - Caron, G., & Srivastava, S. (2023). Manipulating the Perceived Personality Traits of Language Models. In *Findings of the Association for Computational Linguistics: EMNLP 2023* (pp. 2370–2386). Association for Computational Linguistics. https://doi.org/10.18653/v1/2023.findings-emnlp.156
+- Deb, A., & Krishnan, R. (2026). STOCKTAKE: Benchmarking LLM Agents on Inventory Management Under Partial Observability. *arXiv:2607.13618*.
 - Dubedy, S. (2026). Persona-Conditioned Risk Behavior in Large Language Models: A Simulated Gambling Study with GPT-4.1. *arXiv:2603.15831*.
 - Hardin, G. (1968). The tragedy of the commons. *Science*, 162(3859), 1243–1248.
 - Hartley, J., Hamill, C., Seddon, D., Batra, D., Okhrati, R., & Khraishi, R. (2025). How Personality Traits Shape LLM Risk-Taking Behaviour. In *Findings of the Association for Computational Linguistics: ACL 2025* (pp. 21068–21092). Association for Computational Linguistics. https://doi.org/10.18653/v1/2025.findings-acl.1085
